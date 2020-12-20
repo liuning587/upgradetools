@@ -16,7 +16,7 @@ public class Logger {
 
 	private static Runnable runnable;
 
-	private static Queue<Loginfo> loginfoQueue = new Queue();
+	private static Queue<Loginfo> loginfoQueue = new Queue<Loginfo>();
 
 	public static void init(StyledText textLog) {
 		Logger.textLog = textLog;
@@ -63,6 +63,9 @@ public class Logger {
 //			break;
 		case WARNING:
 			color = BLUE;
+			break;
+		default:
+			color = RED;
 			break;
 		}
 		String message = String.valueOf(SysUtils.timeToStr(loginfo.getTime())) + " " + loginfo.getMessage() + "\n";

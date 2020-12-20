@@ -15,7 +15,7 @@ public class Channel {
 	public Channel(FepConnector owner, BlockingQueue<Packet> responseQueue) {
 		this.owner = owner;
 		this.responseQueue = responseQueue;
-		this.requestQueue = new BlockingQueue();
+		this.requestQueue = new BlockingQueue<Packet>();
 		this.closed = true;
 	}
 

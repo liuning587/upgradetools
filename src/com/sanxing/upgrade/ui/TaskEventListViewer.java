@@ -98,6 +98,9 @@ class TaskEventListViewer extends StyledText {
 				case RECEIVE_RESPONSE:
 					warning(buffer.toString());
 					break;
+				default:
+					error(buffer.toString());
+					break;
 				}
 				buffer.setLength(0);
 			}

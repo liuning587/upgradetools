@@ -31,9 +31,9 @@ public class UpgradeService {
 			this.tasks = new TaskList();
 		}
 
-		this.waitingTasks = new Queue();
+		this.waitingTasks = new Queue<Task>();
 
-		this.faultTasks = new Queue();
+		this.faultTasks = new Queue<Task>();
 
 		this.fepConnectController = new FepConnectController();
 	}

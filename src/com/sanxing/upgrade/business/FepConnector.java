@@ -83,7 +83,7 @@ public class FepConnector {
 
 		updateParams();
 
-		this.responseQueue = new BlockingQueue();
+		this.responseQueue = new BlockingQueue<Packet>();
 
 		this.channel = new Channel(this, this.responseQueue);
 

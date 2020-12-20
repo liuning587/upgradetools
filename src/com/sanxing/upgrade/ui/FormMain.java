@@ -69,7 +69,7 @@ import org.eclipse.swt.widgets.ToolItem;
 public class FormMain extends Shell {
 	private UpgradeService upgradeService = UpgradeService.getInstance();
 
-	private Queue<Task> refreshQueue = new Queue();
+	private Queue<Task> refreshQueue = new Queue<Task>();
 
 	private CTabFolder folder;
 

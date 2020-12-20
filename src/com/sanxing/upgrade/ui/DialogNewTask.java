@@ -82,7 +82,7 @@ public class DialogNewTask extends Dialog {
 
 	private void createContents() {
 		this.shell = new Shell(getParent(), getStyle());
-		this.shell.setSize(400, 275);
+		this.shell.setSize(550, 450);
 		this.shell.setText(getText());
 
 		GridLayout layout = new GridLayout();
