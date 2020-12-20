@@ -280,13 +280,8 @@ public class SysUtils {
 
 	public static String bytesToHex(byte[] bytes) {
 		StringBuffer buffer = new StringBuffer();
-		byte b;
-		int i;
-		byte[] arrayOfByte;
-		for (i = (arrayOfByte = bytes).length, b = 0; b < i;) {
-			byte b1 = arrayOfByte[b];
-			buffer.append(byteToHex(b1));
-			b++;
+		for (int i = 0; i < bytes.length; i++) {
+			buffer.append(byteToHex(bytes[i]));
 		}
 		return buffer.toString();
 	}

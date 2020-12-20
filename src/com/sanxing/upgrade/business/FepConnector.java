@@ -137,13 +137,8 @@ public class FepConnector {
 				e.printStackTrace();
 			}
 		}
-		byte b;
-		int i;
-		UpgradeThread[] arrayOfUpgradeThread;
-		for (i = (arrayOfUpgradeThread = this.upgradeThreads).length, b = 0; b < i;) {
-			UpgradeThread thread = arrayOfUpgradeThread[b];
-			thread.close();
-			b++;
+		for (int i = 0; i < this.upgradeThreads.length; i++) {
+			this.upgradeThreads[i].close();
 		}
 
 		this.responseDispatchThread.close();
@@ -154,8 +149,8 @@ public class FepConnector {
 
 		this.responseQueue.wakeup();
 
-		for (i = (arrayOfUpgradeThread = this.upgradeThreads).length, b = 0; b < i;) {
-			UpgradeThread thread = arrayOfUpgradeThread[b];
+		for (int i = 0; i < this.upgradeThreads.length; i++) {
+			UpgradeThread thread = this.upgradeThreads[i];
 			if (thread.isAlive()) {
 
 				try {
@@ -165,7 +160,6 @@ public class FepConnector {
 					return;
 				}
 			}
-			b++;
 		}
 
 		if (this.responseDispatchThread.isAlive()) {
@@ -304,4 +298,4 @@ public class FepConnector {
 	public int getHeartbeatInterval() {
 		return this.heartbeatInterval;
 	}
- }
+}

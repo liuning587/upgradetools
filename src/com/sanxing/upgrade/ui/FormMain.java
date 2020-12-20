@@ -1028,16 +1028,16 @@ public class FormMain extends Shell {
 			column.addSelectionListener((SelectionListener) adapter);
 			switch (i) {
 			case 0:
-				column.setWidth(100);
+				column.setWidth(150);
 				break;
 			case 1:
-				column.setWidth(70);
+				column.setWidth(120);
 				break;
 			case 2:
-				column.setWidth(400);
+				column.setWidth(450);
 				break;
 			case 3:
-				column.setWidth(80);
+				column.setWidth(130);
 				break;
 			case 4:
 				column.setWidth(120);

@@ -19,13 +19,8 @@ public abstract class PacketParser {
 
 	public static byte calcCs(byte[] data) {
 		byte result = 0;
-		byte b;
-		int i;
-		byte[] arrayOfByte;
-		for (i = (arrayOfByte = data).length, b = 0; b < i;) {
-			byte b1 = arrayOfByte[b];
-			result = (byte) (result + b1);
-			b++;
+		for (int i = 0; i < data.length; i++) {
+			result = (byte) (result + data[i]);
 		}
 		return result;
 	}

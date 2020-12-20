@@ -23,15 +23,10 @@ public class FepConnectController {
 	public void close() {
 		if (this.connectors == null)
 			return;
-		byte b;
-		int i;
-		FepConnector[] arrayOfFepConnector;
-		for (i = (arrayOfFepConnector = this.connectors).length, b = 0; b < i;) {
-			FepConnector connector = arrayOfFepConnector[b];
-			connector.close();
-			b++;
+		
+		for (int i = 0; i < this.connectors.length; i++) {
+			this.connectors[i].close();
 		}
-
 		this.connectors = null;
 	}
 }

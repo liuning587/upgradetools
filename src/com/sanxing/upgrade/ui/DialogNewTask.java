@@ -411,13 +411,8 @@ public class DialogNewTask extends Dialog {
 
 				if (!MessageDialog.openQuestion(DialogNewTask.this.shell, "注意", "将创建" + addrs.length + "个升级任务，是否确定操作？"))
 					return;
-				byte b;
-				int i;
-				String[] arrayOfString1;
-				for (i = (arrayOfString1 = addrs).length, b = 0; b < i;) {
-					String str = arrayOfString1[b];
-					DialogNewTask.this.upgradeService.appendTask(str);
-					b++;
+				for (int i = 0; i < addrs.length; i++) {
+					DialogNewTask.this.upgradeService.appendTask(addrs[i]);
 				}
 				addrs = (String[]) null;
 

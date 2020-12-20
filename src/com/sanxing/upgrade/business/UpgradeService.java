@@ -127,20 +127,13 @@ public class UpgradeService {
 		}
 
 		Object[] waitings = this.waitingTasks.toArray();
-		byte b;
-		int i;
-		Object[] arrayOfObject1;
-		for (i = (arrayOfObject1 = waitings).length, b = 0; b < i;) {
-			Object task = arrayOfObject1[b];
-			((Task) task).stop();
-			b++;
+		for (int i = 0; i < waitings.length; i++) {
+			((Task) waitings[i]).stop();
 		}
 
 		waitings = this.faultTasks.toArray();
-		for (i = (arrayOfObject1 = waitings).length, b = 0; b < i;) {
-			Object task = arrayOfObject1[b];
-			((Task) task).stop();
-			b++;
+		for (int i = 0; i < waitings.length; i++) {
+			((Task) waitings[i]).stop();
 		}
 
 		this.closed = true;
