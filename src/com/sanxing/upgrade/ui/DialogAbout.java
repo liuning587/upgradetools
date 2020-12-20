@@ -39,7 +39,7 @@ public class DialogAbout extends Dialog {
 
 	private void createContents() {
 		this.shell = new Shell(getParent(), getStyle());
-		this.shell.setSize(425, 158);
+		this.shell.setSize(500, 158);
 		this.shell.setText(getText());
 
 		GridLayout layout = new GridLayout(2, false);
