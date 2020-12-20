@@ -1145,7 +1145,7 @@ public class FormMain extends Shell {
 				if (FormMain.this.tvTask.getTable().isDisposed())
 					return;
 				while (true) {
-					Task task = (Task) FormMain.this.refreshQueue.take();
+					Task task = FormMain.this.refreshQueue.take();
 					if (task == null)
 						return;
 					FormMain.this.tvTask.refresh(task);
