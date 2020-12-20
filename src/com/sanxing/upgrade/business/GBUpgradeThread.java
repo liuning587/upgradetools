@@ -418,8 +418,7 @@ class GBUpgradeThread extends UpgradeThread {
 							this.currentTask.addState(16);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级成功，版本已相符"));
-						}
-						if (this.skipLaterVersion && version.compareTo(this.file.getVersion()) > 0) {
+						} else if (this.skipLaterVersion && version.compareTo(this.file.getVersion()) > 0) {
 							this.currentTask.addState(16);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级结束，终端当前版本大于目标版本"));
