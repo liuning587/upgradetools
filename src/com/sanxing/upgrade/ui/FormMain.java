@@ -267,7 +267,7 @@ public class FormMain extends Shell {
 			throw new Exception("请正确输入同时升级终端数。");
 		}
 		i = Integer.valueOf(this.textMaxTaskCount.getText().trim()).intValue();
-		if (1 > i || 100 < i) {
+		if (1 > i || 999 < i) {
 			this.textMaxTaskCount.forceFocus();
 			throw new Exception("请正确输入同时升级终端数。");
 		}
@@ -622,7 +622,7 @@ public class FormMain extends Shell {
 
 		label = new Label(composite, 0);
 		label.setLayoutData(new GridData(32));
-		label.setText("(1-100)");
+		label.setText("(1-999)");
 
 		label = new Label(composite, 0);
 		label.setLayoutData(new GridData(128));
@@ -1525,6 +1525,7 @@ public class FormMain extends Shell {
 					writer.newLine();
 				}
 				writer.flush();
+				writer.close();
 			} catch (IOException e1) {
 				MessageDialog.openError(getShell(), "注意", "无法创建指定的文件。");
 				return;

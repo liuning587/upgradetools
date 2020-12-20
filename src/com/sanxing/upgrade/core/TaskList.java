@@ -104,7 +104,9 @@ public class TaskList implements Serializable {
 			File file = new File("TaskList.zer");
 			if (file.exists()) {
 				ObjectInputStream stream = new ObjectInputStream(new FileInputStream("TaskList.zer"));
-				return (TaskList) stream.readObject();
+				TaskList taskList = (TaskList) stream.readObject();
+				stream.close();
+				return taskList;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

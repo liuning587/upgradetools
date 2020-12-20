@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.SWT;
 
 public class DialogNewTask extends Dialog {
 	private UpgradeService upgradeService = UpgradeService.getInstance();
@@ -195,6 +196,7 @@ public class DialogNewTask extends Dialog {
 
 		this.btnDec = new Button(cpFormat, 16);
 		this.btnDec.setText("十进制");
+		new Label(composite, SWT.NONE);
 		this.btnDec.addSelectionListener((SelectionListener) new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
 				DialogNewTask.this.changeUIState();

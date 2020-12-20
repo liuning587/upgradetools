@@ -375,7 +375,7 @@ public class SysUtils {
 	}
 
 	public static int compareDate(Date d1, Date d2) {
-		if (d1 == null || d2 == null)
+		if (d1 == null && d2 == null)
 			return 0;
 		if (d1 == null && d2 != null)
 			return -1;
@@ -385,7 +385,7 @@ public class SysUtils {
 	}
 
 	public static int compareTime(Date t1, Date t2) {
-		if (t1 == null || t2 == null)
+		if (t1 == null && t2 == null)
 			return 0;
 		if (t1 == null && t2 != null)
 			return -1;
@@ -395,7 +395,7 @@ public class SysUtils {
 	}
 
 	public static int compareDatetime(Date d1, Date d2) {
-		if (d1 == null || d2 == null)
+		if (d1 == null && d2 == null)
 			return 0;
 		if (d1 == null && d2 != null)
 			return -1;
