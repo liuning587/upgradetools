@@ -33,4 +33,4 @@ public class CheckFileRespPacket extends SBPacket {
 	public byte[] getPs() {
 		return this.ps;
 	}
- }
+}

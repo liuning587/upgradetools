@@ -57,7 +57,7 @@ public class DialogAbout extends Dialog {
 
 		label = new Label((Composite) this.shell, 0);
 		label.setLayoutData(new GridData(32));
-		label.setText("终端升级工具 (0.1.11)");
+		label.setText("终端升级工具 (0.1.12)");
 		label.setFont(Resources.getBoldFont("FONT_DEFAULT"));
 
 		label = new Label((Composite) this.shell, 0);

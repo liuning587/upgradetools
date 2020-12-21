@@ -72,10 +72,7 @@ public class FepConnector {
 	}
 
 	public void resetChannel() {
-		synchronized (this) {
-			this.channel.close();
-			notifyAll();
-		}
+		this.channel.close();
 	}
 
 	public void open() {
@@ -213,7 +210,7 @@ public class FepConnector {
 	public void handleEvent(Event event) {
 		if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-			Packet packet = this.parser.unpackReponse(((Packet) event.attachment()).getData());
+			Packet packet = this.parser.unpackReponse((Packet) event.attachment());
 
 			switch (packet.getType()) {
 			case 1:

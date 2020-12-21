@@ -59,14 +59,21 @@ public class Event implements Serializable {
 	}
 
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
-		buffer.append("(" + this.type);
-		if (this.attachment != null)
-			buffer.append("," + this.attachment);
-		if (this.pending)
-			buffer.append(",等待处理");
-		buffer.append(")");
+		StringBuffer buffer = new StringBuffer(this.remark);
 
+		if (this.attachment != null) {
+			buffer.append("(");
+			buffer.append(this.attachment.toString());
+			buffer.append(")");
+		}
 		return buffer.toString();
 	}
- }
+
+	public void setTime(Date time) {
+		this.time = time;
+	}
+
+	public Date getDate() {
+		return this.time;
+	}
+}

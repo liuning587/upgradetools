@@ -1,12 +1,15 @@
 package com.sanxing.upgrade.business;
 
 import com.sanxing.upgrade.core.Event;
+import com.sanxing.upgrade.core.EventDAO;
 import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.ProtocolType;
 import com.sanxing.upgrade.core.Queue;
 import com.sanxing.upgrade.core.Task;
+import com.sanxing.upgrade.core.TaskDAO;
 import com.sanxing.upgrade.core.UpgradeFile;
 import com.sanxing.upgrade.util.Resources;
+import java.sql.SQLException;
 
 public abstract class UpgradeThread extends Thread {
 	UpgradeService service = UpgradeService.getInstance();
@@ -153,6 +156,15 @@ public abstract class UpgradeThread extends Thread {
 				handleEvent(event);
 
 				this.service.taskChanged(this.currentTask);
+			}
+
+			try {
+				TaskDAO.update(this.currentTask);
+
+				EventDAO.insert(this.currentTask.getTerminalAddr(), this.currentTask.getEvents().toArray());
+				this.currentTask.getEvents().clear();
+			} catch (SQLException e) {
+				System.out.println(e);
 			}
 
 			if (!this.currentTask.isFinish() && this.restartFaultTask) {

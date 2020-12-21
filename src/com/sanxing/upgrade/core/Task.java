@@ -1,6 +1,7 @@
 package com.sanxing.upgrade.core;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class Task implements Serializable {
 	private static final long serialVersionUID = -8240196440472477811L;
@@ -18,12 +19,15 @@ public class Task implements Serializable {
 	private int state;
 	private float rcvRate;
 	private String fileSign;
+	private String remark;
+	private Date lastTime;
 
 	public Task(String terminalAddr) {
 		this.terminalAddr = terminalAddr;
 		this.oldVersion = "";
 		this.currentVersion = "";
 		this.fileSign = "";
+		this.remark = "";
 
 		this.events = new EventList();
 	}
@@ -71,6 +75,8 @@ public class Task implements Serializable {
 
 	public void addEvent(Event event) {
 		this.events.add(event);
+		this.remark = event.getRemark();
+		this.lastTime = event.time();
 	}
 
 	public synchronized void addState(int state) {
@@ -160,5 +166,25 @@ public class Task implements Serializable {
 
 	public void setRcvRate(float rcvRate) {
 		this.rcvRate = rcvRate;
+	}
+
+	public float getRcvRate() {
+		return this.rcvRate;
+	}
+
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+
+	public String getRemark() {
+		return this.remark;
+	}
+
+	public void setLastTime(Date lastTime) {
+		this.lastTime = lastTime;
+	}
+
+	public Date getLastTime() {
+		return this.lastTime;
 	}
 }

@@ -8,11 +8,13 @@ import java.util.List;
 
 public class GBPacketParser extends PacketParser {
 	public static final byte AFN_CONFIRM = 0;
+	public static final byte AFN_RESET = 1;
 	public static final byte AFN_LINK = 2;
 	public static final byte AFN_QRYD1 = 12;
 	public static final byte AFN_TRANSFER = 19;
 	public static final byte AFN_ATCT = 51;
 	public static final byte FN_VERSION = 1;
+	public static final byte FN_DATA_CLEAR = 2;
 	public static final byte FN_ALL_OK = 1;
 	public static final byte FN_ALL_ERROR = 2;
 	public static final byte FN_PART_CONFIRM = 3;
@@ -21,7 +23,7 @@ public class GBPacketParser extends PacketParser {
 	public static final byte FN_UPGRADE_DATA = 3;
 	public static final byte FN_UPGRADE_STOP = 4;
 	public static final byte FN_LOGIN = 1;
-	public static final byte FN_HB = 2;
+	public static final byte FN_HB = 3;
 	private static byte PFC = 0;
 
 	private static byte[] seqLock = new byte[0];
@@ -83,6 +85,57 @@ public class GBPacketParser extends PacketParser {
 		return packet;
 	}
 
+	public GBPacket packResetRequest(String terminalAddr, byte msta) {
+		GBPacket packet = new GBPacket();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+
+		byte[] data = new byte[16];
+		int usrLen = 12 + data.length;
+		byte[] wData = new byte[usrLen + 8];
+
+		int p = 0;
+
+		wData[p++] = 104;
+
+		wData[p++] = (byte) (usrLen << 2 | 0x1);
+		wData[p++] = (byte) (usrLen << 2 >> 8);
+
+		wData[p++] = (byte) (usrLen << 2 | 0x1);
+		wData[p++] = (byte) (usrLen << 2 >> 8);
+
+		wData[p++] = 104;
+
+		wData[p++] = 65;
+
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = (byte) (msta << 1);
+
+		wData[p++] = 1;
+
+		wData[p++] = (byte) (0x60 | newSEQ() & 0xF);
+
+		wData[p++] = 0;
+		wData[p++] = 0;
+
+		wData[p++] = 2;
+		wData[p++] = 0;
+
+		System.arraycopy(data, 0, wData, p, data.length);
+		p += data.length;
+
+		wData[p++] = (byte) (calcCs(wData, 6, 12) + 0);
+
+		wData[p] = 22;
+
+		packet.setData(wData);
+
+		return packet;
+	}
+
 	public GBPacket packQueryVersionRequest(String terminalAddr, byte msta) {
 		return packRequest(terminalAddr, msta, (byte) 12, 1, new byte[0], (byte) 0);
 	}
@@ -100,6 +153,10 @@ public class GBPacketParser extends PacketParser {
 
 	public GBPacket packCancelUpgradeRequest(String terminalAddr, String upgradePassword, byte msta) {
 		return packRequest(terminalAddr, msta, (byte) 19, 2, new byte[0], (byte) 0);
+	}
+
+	public GBPacket packResetSoftRequest(String terminalAddr, String terminalPassword, byte msta) {
+		return packResetRequest(terminalAddr, msta);
 	}
 
 	public boolean isATCTResp(byte[] data) {
@@ -160,6 +217,8 @@ public class GBPacketParser extends PacketParser {
 			}
 
 			GBPacket validPacket = new GBPacket();
+
+			validPacket.setAfn(data[12]);
 			validPacket.setData(Arrays.copyOfRange(data, i, i + len + 8));
 			list.add(validPacket);
 			result = true;
@@ -187,48 +246,33 @@ public class GBPacketParser extends PacketParser {
 	}
 
 	public Packet packHeartbeatRequest(byte msta) {
-		return packRequest("00000000", msta, (byte) 2, 2, new byte[0], (byte) 0);
+		return packRequest("00000000", msta, (byte) 2, 3, new byte[0], (byte) 0);
 	}
 
 	public Packet packLoginRequest(byte msta, String password) {
 		return packRequest("00000000", msta, (byte) 2, 1, new byte[0], (byte) 0);
 	}
 
-	public Packet packATCTRequest(String terminalAddr) {
-		byte[] data = new byte[18];
-		byte p = 0;
-		System.arraycopy("ATCT".getBytes(), 0, data, p, 4);
-		p = (byte) (p + 4);
-		System.arraycopy(terminalAddr.getBytes(), 0, data, p, 4);
-		p = (byte) (p + 4);
-		p = (byte) (p + 1);
-		data[p] = 43;
-		System.arraycopy(terminalAddr.getBytes(), 4, data, p, 4);
-		p = (byte) (p + 4);
-		System.arraycopy("+3001".getBytes(), 0, data, p, 5);
-		Packet packet = new GBPacket();
-		packet.setData(data);
-
-		return packet;
+	public Packet packATCTRequest(byte msta, String terminalAddr) {
+		return packRequest(terminalAddr, msta, (byte) 2, 1, new byte[0], (byte) 0);
 	}
 
-	public Packet unpackReponse(byte[] data) {
-		GBPacket packet = null;
+	public Packet unpackReponse(Packet packet) {
+		byte[] data = packet.getData();
+		byte afn = ((GBPacket) packet).getAfn();
 
-		String act = String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 0, 4)));
-		if (act.compareTo("ATCT") == 0) {
-			byte state = Integer.valueOf(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 4, 8))), 16)
-					.byteValue();
-			if (state > 0)
-				state = (byte) (state - 1);
+		if (isATCTResp(data)) {
 			packet = new ATCTRespPacket();
-			((ATCTRespPacket) packet).setState(state);
-
-			return packet;
-		}
-		if (act.compareTo("EROR") == 0) {
-			packet = new ATCTRespPacket();
-			((ATCTRespPacket) packet).setState((byte) ATCTRespCode.ERROR_UNKNOW.ordinal());
+			String act = String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 0, 4)));
+			if (act.compareTo("ATCT") == 0) {
+				byte state = Integer.valueOf(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 4, 8))), 16)
+						.byteValue();
+				if (state > 0)
+					state = (byte) (state - 1);
+				((ATCTRespPacket) packet).setState(state);
+			} else if (act.compareTo("EROR") == 0) {
+				((ATCTRespPacket) packet).setState((byte) ATCTRespCode.ERROR_UNKNOW.ordinal());
+			}
 			return packet;
 		}
 
@@ -236,7 +280,7 @@ public class GBPacketParser extends PacketParser {
 
 		byte msta = (byte) (data[p++] >>> 1);
 
-		byte afn = data[p++];
+		p++;
 
 		p++;
 
@@ -300,7 +344,7 @@ public class GBPacketParser extends PacketParser {
 			packet = new GBPacket();
 		packet.setTerminalAddr(getTerminalAddr(data));
 		packet.setMsta(msta);
-		packet.setAfn(afn);
+		((GBPacket) packet).setAfn(afn);
 		packet.setData(data);
 
 		return packet;

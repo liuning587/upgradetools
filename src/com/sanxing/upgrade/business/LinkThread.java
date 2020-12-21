@@ -71,7 +71,7 @@ class LinkThread extends Thread {
 				Logger.info("通道" + this.owner.getId() + ":发送登录报文...");
 				this.owner.trySend(this.loginReqPacket);
 
-				timer.reset(this.owner, 10000);
+				timer.reset(this.owner, 60000);
 				while (!timer.isTimeout()) {
 					timer.waitEvent();
 

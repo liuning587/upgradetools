@@ -59,24 +59,14 @@ public class Packet implements Serializable {
 	}
 
 	public String toString() {
-		StringBuffer buffer = new StringBuffer();
-
-		buffer.append("类型：");
-		buffer.append(this.type);
-
-		if (getTerminalAddr() != null) {
-			buffer.append(",终端地址=");
-			buffer.append(getTerminalAddr());
-		}
-
-		buffer.append(",主站编号：");
-		buffer.append(getMsta());
-
-		if (getData() != null) {
-			buffer.append(",数据：");
+		if (this.data != null && this.data.length > 0) {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("size:");
+			buffer.append(this.data.length);
+			buffer.append(" data:");
 			buffer.append(SysUtils.bytesToHex(getData()));
+			return buffer.toString();
 		}
-
-		return buffer.toString();
+		return "size:0";
 	}
 }

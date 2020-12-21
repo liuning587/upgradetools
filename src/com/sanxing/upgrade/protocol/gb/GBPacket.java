@@ -1,6 +1,7 @@
 package com.sanxing.upgrade.protocol.gb;
 
 import com.sanxing.upgrade.protocol.Packet;
+import com.sanxing.upgrade.util.SysUtils;
 
 public class GBPacket extends Packet {
 	private static final long serialVersionUID = 3461482739742596270L;
@@ -16,13 +17,11 @@ public class GBPacket extends Packet {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-
-		buffer.append("功能码：");
-		buffer.append(this.afn);
-
-		buffer.append(",");
+		buffer.append("afn:");
+		buffer.append(SysUtils.byteToHex(this.afn));
+		buffer.append(" ");
 		buffer.append(super.toString());
 
 		return buffer.toString();
 	}
- }
+}

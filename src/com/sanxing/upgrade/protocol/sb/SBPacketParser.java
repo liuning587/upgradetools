@@ -75,12 +75,13 @@ public class SBPacketParser extends PacketParser {
 
 	public Packet packLoginRequest(byte msta, String password) {
 		byte[] data = SysUtils.hexToBytes(password);
-		return packRequest("0000001E", msta, (byte) 33, data, calcCs(data));
+		SysUtils.reverseBytes(data);
+		return packRequest("E000021E", msta, (byte) 33, data, calcCs(data));
 	}
 
 	public Packet packHeartbeatRequest(byte msta) {
 		byte[] data = new byte[0];
-		return packRequest("0000001E", msta, (byte) 36, data, calcCs(data));
+		return packRequest("E000021E", msta, (byte) 36, data, calcCs(data));
 	}
 
 	public SBPacket packQueryVersionRequest(String terminalAddr, byte msta) {
@@ -122,8 +123,9 @@ public class SBPacketParser extends PacketParser {
 		return packRequest(terminalAddr, msta, (byte) 15, data, calcCs(data));
 	}
 
-	public Packet unpackReponse(byte[] data) {
-		SBPacket packet = null;
+	public Packet unpackReponse(Packet packet) {
+		byte[] data = packet.getData();
+		byte ctrl = ((SBPacket) packet).getCtrl();
 
 		int p = 1;
 
@@ -134,7 +136,7 @@ public class SBPacketParser extends PacketParser {
 
 		p++;
 
-		byte ctrl = (byte) (data[p++] & 0x3F);
+		p++;
 
 		if (33 == ctrl) {
 			packet = new LoginRespPacket();
@@ -195,7 +197,7 @@ public class SBPacketParser extends PacketParser {
 			packet = new SBPacket();
 		packet.setTerminalAddr(getTerminalAddr(data));
 		packet.setMsta(msta);
-		packet.setCtrl(ctrl);
+		((SBPacket) packet).setCtrl(ctrl);
 		packet.setData(data);
 
 		return packet;
@@ -238,6 +240,9 @@ public class SBPacketParser extends PacketParser {
 
 			SBPacket validPacket = new SBPacket();
 			validPacket.setData(Arrays.copyOfRange(data, i, i + len + 13));
+
+			validPacket.setCtrl((byte) (data[8] & 0x3F));
+
 			list.add(validPacket);
 
 			result = true;
@@ -290,7 +295,12 @@ public class SBPacketParser extends PacketParser {
 
 	public boolean isFepResp(Packet packet) {
 		String terminalAddr = getTerminalAddr(packet);
-		return (terminalAddr.compareTo("0000001E") == 0);
+
+		if (terminalAddr.compareTo("E000021E") == 0)
+			return true;
+		if (((SBPacket) packet).getCtrl() == 33 || ((SBPacket) packet).getCtrl() == 36)
+			return true;
+		return false;
 	}
 
 	public boolean isATCTResp(byte[] data) {

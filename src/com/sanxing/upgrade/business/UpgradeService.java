@@ -1,11 +1,13 @@
 package com.sanxing.upgrade.business;
 
 import com.sanxing.upgrade.core.Event;
+import com.sanxing.upgrade.core.EventDAO;
 import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.ITaskChangedListener;
 import com.sanxing.upgrade.core.ProtocolType;
 import com.sanxing.upgrade.core.Queue;
 import com.sanxing.upgrade.core.Task;
+import com.sanxing.upgrade.core.TaskDAO;
 import com.sanxing.upgrade.core.TaskList;
 import com.sanxing.upgrade.core.UpgradeFile;
 import com.sanxing.upgrade.core.UpgradeFileType;
@@ -14,6 +16,10 @@ import com.sanxing.upgrade.protocol.gb.GB09PacketParser;
 import com.sanxing.upgrade.protocol.gb.GBPacketParser;
 import com.sanxing.upgrade.protocol.sb.SBPacketParser;
 import com.sanxing.upgrade.util.Resources;
+import java.sql.SQLException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.jface.dialogs.ErrorDialog;
 
 public class UpgradeService {
 	private static UpgradeService instance = new UpgradeService();
@@ -22,11 +28,17 @@ public class UpgradeService {
 
 	private boolean closed = true;
 
-	private TaskList tasks = TaskList.load();
+	private TaskList tasks = new TaskList();
 	private FepConnectController fepConnectController;
 	private ITaskChangedListener taskChangedListener;
 
 	private UpgradeService() {
+		try {
+			TaskDAO.load(this.tasks);
+		} catch (SQLException e) {
+			ErrorDialog.openError(null, "注意", "操作失败", (IStatus) new Status(4, "sxcms", "数据库故障", e), 4);
+		}
+
 		if (this.tasks == null) {
 			this.tasks = new TaskList();
 		}
@@ -52,13 +64,37 @@ public class UpgradeService {
 		}
 		Task task = new Task(terminalAddr);
 
-		this.tasks.put(task);
+		try {
+			TaskDAO.insert(task);
 
-		return task;
+			this.tasks.put(task);
+			return task;
+		} catch (SQLException e) {
+			System.out.println(e);
+			return null;
+		}
 	}
 
 	public void removeTask(Task task) {
+		try {
+			TaskDAO.delete(task);
+
+			EventDAO.delete(task.getTerminalAddr());
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
 		this.tasks.remove(task);
+	}
+
+	public void clearTask() {
+		try {
+			TaskDAO.clear();
+
+			EventDAO.clear();
+		} catch (SQLException e) {
+			System.out.println(e);
+		}
+		this.tasks.clear();
 	}
 
 	private void updateParams() throws Exception {

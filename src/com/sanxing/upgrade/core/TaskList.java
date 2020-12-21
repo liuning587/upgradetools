@@ -1,11 +1,5 @@
 package com.sanxing.upgrade.core;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -84,34 +78,10 @@ public class TaskList implements Serializable {
 	public void clearDone() {
 		Iterator<Task> itr = this.list.values().iterator();
 		while (itr.hasNext()) {
-			if (((Task) itr.next()).isFinish())
+			if (((Task) itr.next()).isFinish()) {
 				itr.remove();
-		}
-	}
-
-	public void save() {
-		try {
-			ObjectOutputStream stream = new ObjectOutputStream(new FileOutputStream("TaskList.zer"));
-			stream.writeObject(this);
-			stream.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public static TaskList load() {
-		try {
-			File file = new File("TaskList.zer");
-			if (file.exists()) {
-				ObjectInputStream stream = new ObjectInputStream(new FileInputStream("TaskList.zer"));
-				TaskList taskList = (TaskList) stream.readObject();
-				stream.close();
-				return taskList;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return null;
 	}
 
 	public void clear() {

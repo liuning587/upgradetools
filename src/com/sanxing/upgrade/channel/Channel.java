@@ -11,6 +11,8 @@ public class Channel {
 	private BlockingQueue<Packet> requestQueue;
 	private BlockingQueue<Packet> responseQueue;
 	private volatile boolean closed;
+	private String hostname;
+	private int port;
 
 	public Channel(FepConnector owner, BlockingQueue<Packet> responseQueue) {
 		this.owner = owner;
@@ -20,6 +22,9 @@ public class Channel {
 	}
 
 	public boolean open(String hostname, int port) {
+		this.hostname = hostname;
+		this.port = port;
+
 		this.tcpThread = new TcpThread(this, new InetSocketAddress(hostname, port), this.requestQueue,
 				this.responseQueue);
 
@@ -31,6 +36,11 @@ public class Channel {
 		}
 
 		return !this.closed;
+	}
+
+	public void reset() {
+		close();
+		open(this.hostname, this.port);
 	}
 
 	public void close() {

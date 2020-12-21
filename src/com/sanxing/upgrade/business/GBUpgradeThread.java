@@ -5,8 +5,6 @@ import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.Task;
 import com.sanxing.upgrade.protocol.Packet;
 import com.sanxing.upgrade.protocol.PacketParser;
-import com.sanxing.upgrade.protocol.gb.ATCTRespCode;
-import com.sanxing.upgrade.protocol.gb.ATCTRespPacket;
 import com.sanxing.upgrade.protocol.gb.CheckFileRespPacket;
 import com.sanxing.upgrade.protocol.gb.ConfirmPacket;
 import com.sanxing.upgrade.protocol.gb.GBPacket;
@@ -32,14 +30,11 @@ class GBUpgradeThread extends UpgradeThread {
 		this.autoCanceling = false;
 
 		if (this.specialChannel) {
-			if (!this.firstTask) {
-				this.fepConnector.resetChannel();
+			if (this.firstTask) {
 				this.firstTask = false;
+			} else {
+				this.fepConnector.resetChannel();
 			}
-			this.ATCTLinked = false;
-			this.fepConnector.addATCTListener(this.currentTask);
-		} else {
-			this.fepConnector.addATCTListener(null);
 		}
 
 		super.startTask();
@@ -154,10 +149,19 @@ class GBUpgradeThread extends UpgradeThread {
 				this.upgradePassword, this.msta));
 	}
 
+	private void doResetSoft() {
+		this.currentTask.setRemark("发送清除数据区命令");
+
+		this.fepConnector.send((Packet) this.parser.packResetSoftRequest(this.currentTask.getTerminalAddr(),
+				this.upgradePassword, this.msta));
+
+		this.service.taskChanged(this.currentTask);
+	}
+
 	private void doATCT() {
 		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "发送ATCT请求"));
 
-		this.fepConnector.send(this.parser.packATCTRequest(this.currentTask.getTerminalAddr()));
+		this.fepConnector.send(this.parser.packATCTRequest(this.msta, this.currentTask.getTerminalAddr()));
 	}
 
 	void handleEvent(Event event) {
@@ -171,38 +175,6 @@ class GBUpgradeThread extends UpgradeThread {
 		}
 		int state = this.currentTask.getState();
 
-		if (this.specialChannel && !this.ATCTLinked) {
-
-			if (EventType.START_TASK == event.type()) {
-				doATCT();
-
-				this.timer.reset(this.currentTask.getEvents(), 15000);
-				return;
-			}
-			if (EventType.RECEIVE_RESPONSE == event.type()) {
-				GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
-				if (packet.getType() == 1048576) {
-					ATCTRespCode code = ATCTRespCode.get(((ATCTRespPacket) packet).getState());
-
-					if (code != ATCTRespCode.OK) {
-
-						this.currentTask
-								.addEvent(Event.create(EventType.STATE_CHANGED, "通道未建立，前置机返回：" + code.getRemark()));
-						this.currentTask.stop();
-
-						return;
-					}
-
-					this.ATCTLinked = true;
-
-					this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "独立通道已建立"));
-
-					event = Event.create(EventType.START_TASK, "");
-				} else {
-					return;
-				}
-			}
-		}
 		if (this.currentTask.isUpgrading()) {
 			if ((state & 0x8) != 0) {
 
@@ -213,7 +185,7 @@ class GBUpgradeThread extends UpgradeThread {
 
 						doQueryVersion();
 
-						this.timer.reset(this.currentTask.getEvents(), 15000);
+						this.timer.reset(this.currentTask.getEvents(), 60000);
 
 					} else {
 
@@ -230,7 +202,7 @@ class GBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
+					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
 					if (packet.getType() == 512) {
 						ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
 
@@ -238,7 +210,11 @@ class GBUpgradeThread extends UpgradeThread {
 							this.currentTask
 									.addEvent(Event.create(EventType.STATE_CHANGED, "升级失败，终端返回：" + code.getRemark()));
 
+							if (ResponseCode.ERROR_3 == code) {
+								doResetSoft();
+							}
 							this.currentTask.removeState(10);
+
 						}
 
 						else if (this.affirmVersion)
@@ -297,7 +273,7 @@ class GBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
+					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 8192) {
 
@@ -313,7 +289,7 @@ class GBUpgradeThread extends UpgradeThread {
 
 							doQueryVersion();
 
-							this.timer.reset(this.currentTask.getEvents(), 15000);
+							this.timer.reset(this.currentTask.getEvents(), 60000);
 							return;
 						}
 						if (this.fileCheckInfo.isError()) {
@@ -395,14 +371,16 @@ class GBUpgradeThread extends UpgradeThread {
 
 								doQueryVersion();
 
-								this.timer.reset(this.currentTask.getEvents(), 15000);
+								this.timer.reset(this.currentTask.getEvents(), 60000);
 
 								return;
 							}
 
 							this.currentTask
 									.addEvent(Event.create(EventType.STATE_CHANGED, "升级失败，终端返回：" + code.getRemark()));
-
+							if (ResponseCode.ERROR_3 == code) {
+								doResetSoft();
+							}
 							this.currentTask.removeState(10);
 						}
 						this.currentTask.stop();
@@ -444,13 +422,27 @@ class GBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
+					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 512) {
 						ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
 						if (!this.autoCanceling) {
 
 							if (ResponseCode.FINISH != code) {
+
+								if (ResponseCode.ERROR_3 == code) {
+
+									this.currentTask.addEvent(
+											Event.create(EventType.STATE_CHANGED, "升级失败，终端返回：" + code.getRemark()));
+
+									doResetSoft();
+
+									this.currentTask.removeState(10);
+
+									this.currentTask.stop();
+
+									return;
+								}
 
 								this.currentTask.addEvent(
 										Event.create(EventType.STATE_CHANGED, "启动升级失败，终端返回：" + code.getRemark()));
@@ -468,6 +460,7 @@ class GBUpgradeThread extends UpgradeThread {
 
 								return;
 							}
+
 							this.currentTask.addState(2);
 
 							this.fileSendInfo.start();
@@ -506,7 +499,7 @@ class GBUpgradeThread extends UpgradeThread {
 
 						doQueryVersion();
 
-						this.timer.reset(this.currentTask.getEvents(), 15000);
+						this.timer.reset(this.currentTask.getEvents(), 60000);
 					} else {
 
 						this.currentTask.addState(1);
@@ -521,7 +514,7 @@ class GBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
+					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 1024) {
 
@@ -576,7 +569,7 @@ class GBUpgradeThread extends UpgradeThread {
 			}
 			if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-				GBPacket packet = (GBPacket) this.parser.unpackReponse(((GBPacket) event.attachment()).getData());
+				GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
 				if (packet.getType() == 512) {
 					ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
 

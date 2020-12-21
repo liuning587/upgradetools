@@ -165,7 +165,7 @@ class SBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					SBPacket packet = (SBPacket) this.parser.unpackReponse(((SBPacket) event.attachment()).getData());
+					SBPacket packet = (SBPacket) this.parser.unpackReponse((Packet) event.attachment());
 					if (packet.getType() == 16384) {
 						ResponseCode code = ResponseCode.get(((UpgradeOverPacket) packet).getCode());
 
@@ -214,7 +214,7 @@ class SBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					SBPacket packet = (SBPacket) this.parser.unpackReponse(((SBPacket) event.attachment()).getData());
+					SBPacket packet = (SBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 8192) {
 
@@ -326,7 +326,7 @@ class SBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					SBPacket packet = (SBPacket) this.parser.unpackReponse(((SBPacket) event.attachment()).getData());
+					SBPacket packet = (SBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 2048) {
 						ResponseCode code = ResponseCode.get(((StartUpgradeRespPacket) packet).getCode());
@@ -400,7 +400,7 @@ class SBUpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					SBPacket packet = (SBPacket) this.parser.unpackReponse(((SBPacket) event.attachment()).getData());
+					SBPacket packet = (SBPacket) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == 1024) {
 
@@ -446,7 +446,7 @@ class SBUpgradeThread extends UpgradeThread {
 			}
 			if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-				SBPacket packet = (SBPacket) this.parser.unpackReponse(((SBPacket) event.attachment()).getData());
+				SBPacket packet = (SBPacket) this.parser.unpackReponse((Packet) event.attachment());
 				if (packet.getType() == 4096) {
 					ResponseCode code = ResponseCode.get(((CancelUpgradeRespPacket) packet).getCode());
 

@@ -19,7 +19,7 @@ public class GB09PacketParser extends GBPacketParser {
 	public static final byte FN_UPGRADE_DATA = 3;
 	public static final byte FN_UPGRADE_STOP = 4;
 	public static final byte FN_LOGIN = 1;
-	public static final byte FN_HB = 2;
+	public static final byte FN_HB = 3;
 	private static byte PFC = 0;
 
 	private static byte[] seqLock = new byte[0];
@@ -85,23 +85,22 @@ public class GB09PacketParser extends GBPacketParser {
 		return packRequest(terminalAddr, msta, (byte) 9, 1, new byte[0], (byte) 0);
 	}
 
-	public Packet unpackReponse(byte[] data) {
-		GBPacket packet = null;
+	public Packet unpackReponse(Packet packet) {
+		byte[] data = packet.getData();
+		byte afn = ((GBPacket) packet).getAfn();
 
-		String act = String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 0, 4)));
-		if (act.compareTo("ATCT") == 0) {
-			byte state = Integer.valueOf(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 4, 8))), 16)
-					.byteValue();
-			if (state > 0)
-				state = (byte) (state - 1);
+		if (isATCTResp(data)) {
 			packet = new ATCTRespPacket();
-			((ATCTRespPacket) packet).setState(state);
-
-			return packet;
-		}
-		if (act.compareTo("EROR") == 0) {
-			packet = new ATCTRespPacket();
-			((ATCTRespPacket) packet).setState((byte) ATCTRespCode.ERROR_UNKNOW.ordinal());
+			String act = String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 0, 4)));
+			if (act.compareTo("ATCT") == 0) {
+				byte state = Integer.valueOf(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, 4, 8))), 16)
+						.byteValue();
+				if (state > 0)
+					state = (byte) (state - 1);
+				((ATCTRespPacket) packet).setState(state);
+			} else if (act.compareTo("EROR") == 0) {
+				((ATCTRespPacket) packet).setState((byte) ATCTRespCode.ERROR_UNKNOW.ordinal());
+			}
 			return packet;
 		}
 
@@ -109,14 +108,16 @@ public class GB09PacketParser extends GBPacketParser {
 
 		byte msta = (byte) (data[p++] >>> 1);
 
-		byte afn = data[p++];
+		p++;
 
 		p++;
 
 		p += 2;
 
 		byte dt1 = data[p++];
+
 		byte dt2 = data[p++];
+
 		int fn = dt2 * 8;
 		for (int i = 0; i < 8; i++) {
 			if ((dt1 & 1 << i) != 0) {
@@ -136,13 +137,29 @@ public class GB09PacketParser extends GBPacketParser {
 				packet = new ConfirmPacket();
 				packet.setType(512);
 				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
-			} else if (fn == 3 && data[p++] == 19) {
-				packet = new ConfirmPacket();
-				packet.setType(512);
-				p += 4;
-				((ConfirmPacket) packet).setState(data[p]);
-			}
+			} else if (fn == 3) {
+				byte safn = data[p++];
 
+				if (safn == 19) {
+					packet = new ConfirmPacket();
+					packet.setType(512);
+					p += 4;
+
+					((ConfirmPacket) packet).setState(data[p]);
+
+				} else if (safn == 2) {
+					packet = new ConfirmPacket();
+					packet.setType(512);
+					p += 4;
+
+					if (data[p] == 0) {
+						((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
+					} else {
+						((ConfirmPacket) packet).setState(data[p]);
+					}
+
+				}
+			}
 		} else if (9 == afn) {
 			if (fn == 1) {
 				packet = new QueryVersionRespPacket();
@@ -171,7 +188,7 @@ public class GB09PacketParser extends GBPacketParser {
 			packet = new GBPacket();
 		packet.setTerminalAddr(getTerminalAddr(data));
 		packet.setMsta(msta);
-		packet.setAfn(afn);
+		((GBPacket) packet).setAfn(afn);
 		packet.setData(data);
 
 		return packet;

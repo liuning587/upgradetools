@@ -211,8 +211,6 @@ public class FormMain extends Shell {
 					}
 					FormMain.this.upgradeService.disconnect();
 				}
-
-				FormMain.this.upgradeService.getTasks().save();
 			}
 		});
 
@@ -712,7 +710,7 @@ public class FormMain extends Shell {
 		label = new Label(composite, 0);
 		label.setLayoutData(new GridData(128));
 		this.btnSpecialChannel = new Button(composite, 32);
-		this.btnSpecialChannel.setText("通过ATCT请求为每个终端建立专用通道(效率低，仅适用于江苏前置机)");
+		this.btnSpecialChannel.setText("为每个终端建立专用通道(效率低)");
 		gridData = new GridData(32);
 		gridData.horizontalSpan = 2;
 		this.btnSpecialChannel.setLayoutData(gridData);
@@ -997,7 +995,7 @@ public class FormMain extends Shell {
 				} else if (!MessageDialog.openQuestion(FormMain.this.getShell(), "注意", "还有任务尚未完成，是否确定删除当前所有任务？")) {
 					return;
 				}
-				FormMain.this.upgradeService.getTasks().clear();
+				FormMain.this.upgradeService.clearTask();
 				FormMain.this.tvTask.getTable().setRedraw(false);
 				FormMain.this.tvTask.refresh();
 				FormMain.this.tvTask.getTable().setRedraw(true);
@@ -1102,13 +1100,11 @@ public class FormMain extends Shell {
 				case 1:
 					return task.getStateRemark();
 				case 2:
-					if (event != null) {
-						return event.getRemark();
-					}
-					return "";
+					return task.getRemark();
 				case 3:
-					if (event != null)
-						return SysUtils.timeToStr(event.time());
+					if (task.getLastTime() != null)
+						return SysUtils.timeToStr(task.getLastTime());
+					return "";
 				case 4:
 					return task.getOldVersion();
 				case 5:
@@ -1145,10 +1141,12 @@ public class FormMain extends Shell {
 				if (FormMain.this.tvTask.getTable().isDisposed())
 					return;
 				while (true) {
-					Task task = FormMain.this.refreshQueue.take();
-					if (task == null)
+					Task task = (Task) FormMain.this.refreshQueue.take();
+					if (task == null) {
 						return;
+					}
 					FormMain.this.tvTask.refresh(task);
+
 					if (task == (Task) ((StructuredSelection) FormMain.this.tvTask.getSelection()).getFirstElement()) {
 						FormMain.this.showTaskInfo(task);
 					}

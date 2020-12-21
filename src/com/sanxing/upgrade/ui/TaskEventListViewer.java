@@ -1,11 +1,13 @@
 package com.sanxing.upgrade.ui;
 
 import com.sanxing.upgrade.core.Event;
+import com.sanxing.upgrade.core.EventDAO;
+import com.sanxing.upgrade.core.EventList;
 import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.Task;
-import com.sanxing.upgrade.protocol.Packet;
 import com.sanxing.upgrade.util.Resources;
 import com.sanxing.upgrade.util.SysUtils;
+import java.sql.SQLException;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -57,52 +59,58 @@ class TaskEventListViewer extends StyledText {
 		});
 	}
 
+	private void fillEvent(Event event) {
+		StringBuffer info = new StringBuffer(SysUtils.timeToStr(event.time()));
+		info.append(" ");
+		info.append(event.toString());
+		switch (event.type()) {
+		//case null: fixme: 注意java语法
+		default:
+			error(info.toString());
+			break;
+		case STATE_CHANGED:
+			info(info.toString());
+			break;
+		case START_TASK:
+		case RECEIVE_RESPONSE:
+			warning(info.toString());
+			break;
+		}
+	}
+
 	public void setInput(Task currentTask) {
-		if (currentTask == null) {
-			setText("");
-
-			return;
-		}
-		if (this.currentTask != currentTask) {
-			this.currentTask = currentTask;
-			setText("");
-			this.lastIndex = 0;
-		}
-		Object[] events = currentTask.getEvents().toArray();
+		Object[] events;
 		setRedraw(false);
+
 		try {
-			StringBuffer buffer = new StringBuffer();
+			if (currentTask == null) {
+				setText("");
+
+				return;
+			}
+			if (this.currentTask != currentTask || currentTask.getEvents().count() == 0) {
+				this.currentTask = currentTask;
+				setText("");
+				this.lastIndex = 0;
+
+				EventList list = new EventList();
+				try {
+					EventDAO.load(currentTask.getTerminalAddr(), list);
+				} catch (SQLException e) {
+					System.out.println(e);
+				}
+
+				Object[] arrayOfObject = list.toArray();
+				for (int j = this.lastIndex; j < arrayOfObject.length; j++) {
+					fillEvent((Event) arrayOfObject[j]);
+					info("\n");
+				}
+			}
+
+			events = currentTask.getEvents().toArray();
 			for (int i = this.lastIndex; i < events.length; i++) {
-				Event event = (Event) events[i];
-
-				buffer.append(SysUtils.timeToStr(event.time()));
-				buffer.append(" ");
-
-				buffer.append(event.getRemark());
-
-				if (event.attachment() != null && event.attachment() instanceof Packet) {
-					buffer.append("(");
-					buffer.append(SysUtils.bytesToHex(((Packet) event.attachment()).getData()));
-					buffer.append(")");
-				}
-
-				buffer.append("\n");
-				switch (event.type()) {
-//				case null: fixme:  注意java语法
-//					error(buffer.toString());
-//					break;
-				case STATE_CHANGED:
-					information(buffer.toString());
-					break;
-				case START_TASK:
-				case RECEIVE_RESPONSE:
-					warning(buffer.toString());
-					break;
-				default:
-					error(buffer.toString());
-					break;
-				}
-				buffer.setLength(0);
+				fillEvent((Event) events[i]);
+				info("\n");
 			}
 		} finally {
 			setRedraw(true);
@@ -120,7 +128,7 @@ class TaskEventListViewer extends StyledText {
 		setStyleRange(range);
 	}
 
-	private void information(String message) {
+	private void info(String message) {
 		log(message, this.BLACK);
 	}
 

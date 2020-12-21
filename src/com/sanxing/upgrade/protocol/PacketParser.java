@@ -13,7 +13,7 @@ public abstract class PacketParser {
 
 	public abstract Packet packHeartbeatRequest(byte paramByte);
 
-	public abstract Packet unpackReponse(byte[] paramArrayOfbyte);
+	public abstract Packet unpackReponse(Packet paramPacket);
 
 	public abstract boolean isATCTResp(byte[] paramArrayOfbyte);
 

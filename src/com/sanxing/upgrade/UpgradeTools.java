@@ -1,12 +1,12 @@
 package com.sanxing.upgrade;
 
+import com.sanxing.upgrade.core.DBManager;
+import com.sanxing.upgrade.ui.FormMain;
+import com.sanxing.upgrade.util.Resources;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
-
-import com.sanxing.upgrade.ui.FormMain;
-import com.sanxing.upgrade.util.Resources;
 
 public class UpgradeTools {
 	public static void main(String[] args) {
@@ -15,6 +15,7 @@ public class UpgradeTools {
 		try {
 			try {
 				Resources.initialize();
+				DBManager.initialize();
 			} catch (Exception e1) {
 				ErrorDialog.openError(null, "注意", "无法使用系统", (IStatus) new Status(4, "sxcms", "初始化失败", e1), 4);
 
@@ -37,7 +38,7 @@ public class UpgradeTools {
 		} finally {
 			if (display != null)
 				display.dispose();
-		} 
+		}
 		if (display != null)
 			display.dispose();
 	}

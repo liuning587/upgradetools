@@ -1,6 +1,7 @@
 package com.sanxing.upgrade.protocol.sb;
 
 import com.sanxing.upgrade.protocol.Packet;
+import com.sanxing.upgrade.util.SysUtils;
 
 public class SBPacket extends Packet {
 	private static final long serialVersionUID = 3461482739742596270L;
@@ -16,11 +17,9 @@ public class SBPacket extends Packet {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-
-		buffer.append("控制码：");
-		buffer.append(this.ctrl);
-
-		buffer.append(",");
+		buffer.append("ctrl:");
+		buffer.append(SysUtils.byteToHex(this.ctrl));
+		buffer.append(" ");
 		buffer.append(super.toString());
 
 		return buffer.toString();
