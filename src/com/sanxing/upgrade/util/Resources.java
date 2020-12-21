@@ -154,7 +154,7 @@ public class Resources {
 		try {
 			properties.load(fs);
 		} finally {
-			stream.close();
+			fs.close();
 		}
 	}
 
