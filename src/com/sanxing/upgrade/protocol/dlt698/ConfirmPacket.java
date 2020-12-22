@@ -1,7 +1,7 @@
-package com.sanxing.upgrade.protocol.gb;
+package com.sanxing.upgrade.protocol.dlt698;
 
-public class ConfirmPacket extends GBPacket {
-	private static final long serialVersionUID = -2595087593613350057L;
+public class ConfirmPacket extends DLT698Packet {
+	private static final long serialVersionUID = 4440499957710848285L;
 	private byte state;
 
 	public ConfirmPacket() {

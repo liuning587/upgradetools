@@ -5,7 +5,7 @@ public class StartUpgradeRespPacket extends SBPacket {
 	private int code;
 
 	public StartUpgradeRespPacket() {
-		setType(2048);
+		setType(RUN_UPGRADE_RESP);
 	}
 
 	public void setCode(int code) {

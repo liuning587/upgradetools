@@ -27,23 +27,21 @@ public class DBManager {
 		Class.forName(driver);
 		boolean isExists = false;
 		try {
-			conn = DriverManager.getConnection(url + dbName); //"jdbc:derby:db"
+			conn = DriverManager.getConnection(url + dbName); // "jdbc:derby:db"
 			isExists = true;
 		} catch (Exception exception) {
 		}
 
 		if (!isExists) {
-			conn = DriverManager.getConnection(url + dbName + ";create=true"); //"jdbc:derby:db;create=true"
+			conn = DriverManager.getConnection(url + dbName + ";create=true"); // "jdbc:derby:db;create=true"
 
 			Statement stmt = getStmt();
 
 			try {
-				stmt.execute(
-						SQL_CREATE_TBL_TASK);
+				stmt.execute(SQL_CREATE_TBL_TASK);
 				stmt.execute(SQL_CREATE_IDX_TASK);
 
-				stmt.execute(
-						SQL_CREATE_TBL_EVENT);
+				stmt.execute(SQL_CREATE_TBL_EVENT);
 				stmt.execute(SQL_CREATE_IDX_EVENT);
 			} finally {
 				stmt.close();

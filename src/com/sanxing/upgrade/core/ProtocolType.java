@@ -6,6 +6,8 @@ public enum ProtocolType {
 	GB09("国标(376.1-2009)") {
 	},
 	SB("省标") {
+	},
+	DLT698("DLT698.45") {
 	};
 	private String remark;
 

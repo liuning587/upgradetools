@@ -5,13 +5,13 @@ import java.util.Date;
 
 public class Task implements Serializable {
 	private static final long serialVersionUID = -8240196440472477811L;
-	public static final int STATE_RETURN_VERSION = 1;
-	public static final int STATE_START_UPGRADE = 2;
-	public static final int STATE_CHECK_FILE = 8;
-	public static final int STATE_FINISH = 16;
-	public static final int STATE_UPGRADING = 1024;
-	public static final int STATE_CANCELING = 2048;
-	public static final int STATE_WAITING = 4096;
+	public static final int STATE_RETURN_VERSION = 0x0001;
+	public static final int STATE_START_UPGRADE = 0x0002;
+	public static final int STATE_CHECK_FILE = 0x0008;
+	public static final int STATE_FINISH = 0x0010;//16;
+	public static final int STATE_UPGRADING = 0x0400;//1024;
+	public static final int STATE_CANCELING = 0x0800;//2048;
+	public static final int STATE_WAITING = 0x1000;//4096;
 	private String terminalAddr;
 	private String oldVersion;
 	private String currentVersion;
@@ -37,17 +37,17 @@ public class Task implements Serializable {
 	}
 
 	public int getRate() {
-		if ((this.state & 0x10) != 0) {
+		if ((this.state & STATE_FINISH) != 0) {
 			return 100;
 		}
-		if ((this.state & 0x8) != 0) {
+		if ((this.state & STATE_CHECK_FILE) != 0) {
 			return 98;
 		}
-		if ((this.state & 0x2) != 0) {
+		if ((this.state & STATE_START_UPGRADE) != 0) {
 			return 2 + Math.round(96.0F * this.rcvRate);
 		}
 
-		if ((this.state & 0x1) != 0) {
+		if ((this.state & STATE_RETURN_VERSION) != 0) {
 			return 2;
 		}
 		return 0;
@@ -104,19 +104,19 @@ public class Task implements Serializable {
 	}
 
 	public synchronized boolean isFinish() {
-		return ((this.state & 0x10) != 0);
+		return ((this.state & STATE_FINISH) != 0);
 	}
 
 	public synchronized boolean isUpgrading() {
-		return ((this.state & 0x400) != 0);
+		return ((this.state & STATE_UPGRADING) != 0);
 	}
 
 	public synchronized boolean isCanceling() {
-		return ((this.state & 0x800) != 0);
+		return ((this.state & STATE_CANCELING) != 0);
 	}
 
 	public synchronized boolean isWaiting() {
-		return ((this.state & 0x1000) != 0);
+		return ((this.state & STATE_WAITING) != 0);
 	}
 
 	public synchronized boolean isBreakPending() {

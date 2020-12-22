@@ -15,8 +15,7 @@ public class TaskDAO {
 	private static final String SQL_LOAD = "SELECT * FROM UPGRADETOOLS.TASK";
 
 	public static void insert(Task task) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt(
-				SQL_INSERT);
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_INSERT);
 		try {
 			pstmt.setString(1, task.getTerminalAddr());
 			pstmt.setString(2, task.getOldVersion());
@@ -37,8 +36,7 @@ public class TaskDAO {
 	}
 
 	public static void update(Task task) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt(
-				SQL_UPDATE);
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_UPDATE);
 		try {
 			pstmt.setString(1, task.getOldVersion());
 			pstmt.setString(2, task.getCurrentVersion());

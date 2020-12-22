@@ -170,7 +170,7 @@ public abstract class UpgradeThread extends Thread {
 			if (!this.currentTask.isFinish() && this.restartFaultTask) {
 				if (event == null || EventType.CUSTOMER_BREAK != event.type()) {
 
-					this.currentTask.addState(5120);
+					this.currentTask.addState(Task.STATE_WAITING | Task.STATE_UPGRADING);
 
 					this.faultTasks.put(this.currentTask);
 				}

@@ -5,7 +5,7 @@ public class QueryVersionRespPacket extends SBPacket {
 	private String version;
 
 	public QueryVersionRespPacket() {
-		setType(1024);
+		setType(VERSION_RESP);
 	}
 
 	public void setVersion(String version) {

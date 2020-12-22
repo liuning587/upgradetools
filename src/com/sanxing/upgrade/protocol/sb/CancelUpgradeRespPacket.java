@@ -5,7 +5,7 @@ public class CancelUpgradeRespPacket extends SBPacket {
 	private int code;
 
 	public CancelUpgradeRespPacket() {
-		setType(4096);
+		setType(CANCEL_UPGRADE_RESP);
 	}
 
 	public void setCode(int code) {

@@ -8,14 +8,14 @@ public class Packet implements Serializable {
 	public static final int LOGIN_RESP = 1;
 	public static final int HB_RESP = 2;
 	public static final int LINK_CHECK_REQ = 4;
-	public static final int CONFIRM_RESP = 512;
-	public static final int VERSION_RESP = 1024;
-	public static final int RUN_UPGRADE_RESP = 2048;
-	public static final int CANCEL_UPGRADE_RESP = 4096;
-	public static final int CHECK_RCV_RESP = 8192;
-	public static final int STOP_UPGRADE_RESP = 16384;
-	public static final int ATCT_RESP = 1048576;
-	public static final int UNKNOW_RESP = -2147483648;
+	public static final int CONFIRM_RESP = 0x200;//512;
+	public static final int VERSION_RESP = 0x400;//1024;
+	public static final int RUN_UPGRADE_RESP = 0x800;//2048;
+	public static final int CANCEL_UPGRADE_RESP = 0x1000;//4096;
+	public static final int CHECK_RCV_RESP = 0x2000;//8192;
+	public static final int STOP_UPGRADE_RESP = 0x4000;//16384;
+	public static final int ATCT_RESP = 0x100000;//1048576;
+	public static final int UNKNOW_RESP = 0x80000000;//-2147483648;
 	private int type = Integer.MIN_VALUE;
 	private String terminalAddr;
 

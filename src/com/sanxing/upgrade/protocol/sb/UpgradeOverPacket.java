@@ -5,7 +5,7 @@ public class UpgradeOverPacket extends SBPacket {
 	private int code;
 
 	public UpgradeOverPacket() {
-		setType(16384);
+		setType(STOP_UPGRADE_RESP);
 	}
 
 	public void setCode(int code) {

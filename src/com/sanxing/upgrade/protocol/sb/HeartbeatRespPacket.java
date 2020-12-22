@@ -4,6 +4,6 @@ public class HeartbeatRespPacket extends SBPacket {
 	private static final long serialVersionUID = 8828700439516516666L;
 
 	public HeartbeatRespPacket() {
-		setType(2);
+		setType(HB_RESP);
 	}
 }

@@ -15,6 +15,7 @@ import com.sanxing.upgrade.protocol.PacketParser;
 import com.sanxing.upgrade.protocol.gb.GB09PacketParser;
 import com.sanxing.upgrade.protocol.gb.GBPacketParser;
 import com.sanxing.upgrade.protocol.sb.SBPacketParser;
+import com.sanxing.upgrade.protocol.dlt698.DLT698PacketParser;
 import com.sanxing.upgrade.util.Resources;
 import java.sql.SQLException;
 import org.eclipse.core.runtime.IStatus;
@@ -187,7 +188,7 @@ public class UpgradeService {
 		if (task.isCanceling() || task.isUpgrading()) {
 			return false;
 		}
-		task.addState(6144);
+		task.addState(Task.STATE_WAITING | Task.STATE_CANCELING);
 
 		if (!task.isNew())
 			task.removeState(10);
@@ -205,7 +206,7 @@ public class UpgradeService {
 			return false;
 		}
 
-		task.addState(5120);
+		task.addState(Task.STATE_WAITING | Task.STATE_UPGRADING);
 
 		if (task.isFinish()) {
 			task.removeState(26);
@@ -216,7 +217,7 @@ public class UpgradeService {
 			task.setFileSign(this.upgradeFile.getSign());
 
 		} else if (task.getFileSign().compareTo(this.upgradeFile.getSign()) != 0) {
-			if ((task.getState() & 0x2) != 0) {
+			if ((task.getState() & Task.STATE_START_UPGRADE) != 0) {
 				task.removeState(10);
 
 				task.addEvent(Event.create(EventType.STATE_CHANGED,
@@ -262,15 +263,16 @@ public class UpgradeService {
 		if (parser == null) {
 			ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE"))
 					.intValue()];
-			if (ProtocolType.GB == type) {
+			if (ProtocolType.DLT698 == type) {
+				parser = (PacketParser) new DLT698PacketParser();
+			} else if (ProtocolType.GB == type) {
 				parser = (PacketParser) new GBPacketParser();
 			} else if (ProtocolType.GB09 == type) {
 				parser = (PacketParser) new GB09PacketParser();
 			} else {
 				parser = (PacketParser) new SBPacketParser();
 			}
-
 		}
 		return parser;
 	}
- }
+}
