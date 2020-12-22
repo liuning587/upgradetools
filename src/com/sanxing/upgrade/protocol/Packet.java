@@ -15,7 +15,8 @@ public class Packet implements Serializable {
 	public static final int CHECK_RCV_RESP = 0x2000;//8192;
 	public static final int STOP_UPGRADE_RESP = 0x4000;//16384;
 	public static final int ATCT_RESP = 0x100000;//1048576;
-	public static final int UNKNOW_RESP = 0x80000000;//-2147483648	private int type = Integer.MIN_VALUE;
+	public static final int UNKNOW_RESP = 0x80000000;//-2147483648	
+	private int type = Integer.MIN_VALUE;
 	private String terminalAddr;
 
 	public void setData(byte[] data) {
