@@ -5,16 +5,16 @@ import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.Task;
 import com.sanxing.upgrade.protocol.Packet;
 import com.sanxing.upgrade.protocol.PacketParser;
-import com.sanxing.upgrade.protocol.gb.CheckFileRespPacket;
-import com.sanxing.upgrade.protocol.gb.ConfirmPacket;
-import com.sanxing.upgrade.protocol.gb.GBPacket;
-import com.sanxing.upgrade.protocol.gb.GBPacketParser;
-import com.sanxing.upgrade.protocol.gb.QueryVersionRespPacket;
-import com.sanxing.upgrade.protocol.gb.ResponseCode;
+import com.sanxing.upgrade.protocol.dlt698.CheckFileRespPacket;
+import com.sanxing.upgrade.protocol.dlt698.ConfirmPacket;
+import com.sanxing.upgrade.protocol.dlt698.DLT698Packet;
+import com.sanxing.upgrade.protocol.dlt698.DLT698PacketParser;
+import com.sanxing.upgrade.protocol.dlt698.QueryVersionRespPacket;
+import com.sanxing.upgrade.protocol.dlt698.ResponseCode;
 import com.sanxing.upgrade.util.SysUtils;
 
 class DLT698UpgradeThread extends UpgradeThread {
-	private GBPacketParser parser = (GBPacketParser) UpgradeService.getInstance().getPacketParser();
+	private DLT698PacketParser parser = (DLT698PacketParser) UpgradeService.getInstance().getPacketParser();
 
 	private float lastSendRate;
 
@@ -117,7 +117,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 	private void doStartUpgrade() {
 		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "启动终端升级"));
 
-		GBPacket gBPacket = getUpgradeReqPacket(this.currentTask);
+		DLT698Packet gBPacket = getUpgradeReqPacket(this.currentTask);
 
 		this.fepConnector.send((Packet) gBPacket);
 	}
@@ -170,7 +170,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 		int state = this.currentTask.getState();
 
 		if (this.currentTask.isUpgrading()) {
-			if ((state & Task.STATE_CHECK_FILE) != 0) {
+			if ((state & Task.STATE_CHECK_FILE) != 0) { //检查升级文件
 
 				if (EventType.START_TASK == event.type()) {
 
@@ -194,8 +194,8 @@ class DLT698UpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
-					if (packet.getType() == 512) {
+					DLT698Packet packet = (DLT698Packet) this.parser.unpackReponse((Packet) event.attachment());
+					if (packet.getType() == Packet.CONFIRM_RESP) {
 						ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
 
 						if (ResponseCode.FINISH != code) {
@@ -216,11 +216,11 @@ class DLT698UpgradeThread extends UpgradeThread {
 										.addEvent(Event.create(EventType.STATE_CHANGED, "终端已回复确认，请稍后重启任务以核对版本号"));
 							}
 						} else {
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级完成"));
 						}
-
+ 
 						this.currentTask.stop();
 						return;
 					}
@@ -231,18 +231,18 @@ class DLT698UpgradeThread extends UpgradeThread {
 						this.currentTask.setCurrentVersion(version);
 
 						if (version.compareTo(this.file.getVersion()) == 0) {
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级成功，版本已相符"));
 						} else if (this.skipLaterVersion && version.compareTo(this.file.getVersion()) > 0) {
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级结束，终端当前版本大于目标版本"));
 						} else {
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "终端当前版本与目标版本不符，升级失败"));
 
-							this.currentTask.removeState(10);
+							this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 						}
 
 						this.currentTask.stop();
@@ -250,7 +250,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 						return;
 					}
 				}
-			} else if ((state & Task.STATE_START_UPGRADE) != 0) {
+			} else if ((state & Task.STATE_START_UPGRADE) != 0) { //正在升级
 
 				if (EventType.START_TASK == event.type()) {
 
@@ -261,7 +261,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
+					DLT698Packet packet = (DLT698Packet) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == Packet.CHECK_RCV_RESP) {
 
@@ -398,7 +398,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 						this.currentTask.stop();
 					}
 				}
-			} else if ((state & Task.STATE_RETURN_VERSION) != 0) {
+			} else if ((state & Task.STATE_RETURN_VERSION) != 0) { //
 
 				if (EventType.START_TASK == event.type()) {
 
@@ -410,7 +410,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
+					DLT698Packet packet = (DLT698Packet) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == Packet.CONFIRM_RESP) {
 						ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
@@ -502,7 +502,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 				}
 				if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-					GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
+					DLT698Packet packet = (DLT698Packet) this.parser.unpackReponse((Packet) event.attachment());
 
 					if (packet.getType() == Packet.VERSION_RESP) {
 
@@ -557,7 +557,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 			}
 			if (EventType.RECEIVE_RESPONSE == event.type()) {
 
-				GBPacket packet = (GBPacket) this.parser.unpackReponse((Packet) event.attachment());
+				DLT698Packet packet = (DLT698Packet) this.parser.unpackReponse((Packet) event.attachment());
 				if (packet.getType() == Packet.CONFIRM_RESP) {
 					ResponseCode code = ResponseCode.get(((ConfirmPacket) packet).getState());
 
@@ -577,7 +577,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 		}
 	}
 
-	private GBPacket getCheckFileReqPacket(Task task) {
+	private DLT698Packet getCheckFileReqPacket(Task task) {
 		byte[] data = new byte[4];
 		int p = 0;
 
@@ -593,12 +593,12 @@ class DLT698UpgradeThread extends UpgradeThread {
 				PacketParser.calcCs(data));
 	}
 
-	private GBPacket getCheckUpgradeReqPacket(Task task) {
+	private DLT698Packet getCheckUpgradeReqPacket(Task task) {
 		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 4, new byte[0],
 				(byte) 0);
 	}
 
-	private GBPacket getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
+	private DLT698Packet getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
 		byte[] section = this.file.getSections()[index - 1];
 		byte[] data = new byte[4 + section.length];
 
@@ -622,7 +622,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 3, data, cs);
 	}
 
-	private GBPacket getUpgradeReqPacket(Task task) {
+	private DLT698Packet getUpgradeReqPacket(Task task) {
 		byte[] data = new byte[61];
 		int p = 0;
 
