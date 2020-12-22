@@ -40,13 +40,13 @@ class DLT698UpgradeThread extends UpgradeThread {
 	}
 
 	void handleTimeout() {
-		if (this.fileSendInfo.hasNextIndex()) { //1. 正常发送数据
+		if (this.fileSendInfo.hasNextIndex()) { // 1. 正常发送数据
 
 			doSendFile(this.fileSendInfo.getNextIndex(), !this.fileSendInfo.hasNextIndex());
 			float currentSendRate = this.fileSendInfo.sendRate();
 			this.currentTask.setRcvRate(currentSendRate);
 
-			if (this.fileSendInfo.hasNextIndex()) { //有后续帧
+			if (this.fileSendInfo.hasNextIndex()) { // 有后续帧
 				this.timer.reset(this.currentTask.getEvents(), this.sendInterval);
 
 				if ((currentSendRate - this.lastSendRate) > 0.01D) {
@@ -54,7 +54,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 					this.service.taskChanged(this.currentTask);
 				}
-			} else { //最后一包
+			} else { // 最后一包
 
 				this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "文件发送完毕，稍后将继续查询接收情况"));
 
@@ -63,14 +63,14 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 				this.service.taskChanged(this.currentTask);
 			}
-		} else if (!this.fileCheckInfo.isOverTiems()) { //2. 查询位图
+		} else if (!this.fileCheckInfo.isOverTiems()) { // 2. 查询位图
 
 			doCheckFile();
 
 			this.timer.reset(this.currentTask.getEvents(), 10000);
 
 			this.service.taskChanged(this.currentTask);
-		} else if (this.fileSupplyInfo.hasNextIndex()) { //3. 补包
+		} else if (this.fileSupplyInfo.hasNextIndex()) { // 3. 补包
 
 			doSupplyFile(this.fileSupplyInfo.getNextIndex(), !this.fileSupplyInfo.hasNextIndex());
 
@@ -117,9 +117,9 @@ class DLT698UpgradeThread extends UpgradeThread {
 	private void doStartUpgrade() {
 		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "启动终端升级"));
 
-		DLT698Packet gBPacket = getUpgradeReqPacket(this.currentTask);
+		DLT698Packet packet = getUpgradeReqPacket(this.currentTask);
 
-		this.fepConnector.send((Packet) gBPacket);
+		this.fepConnector.send((Packet) packet);
 	}
 
 	private void doSendFile(int index, boolean allowQuery) {
@@ -130,7 +130,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 		this.fepConnector.send((Packet) getUpgradeDataReqPacket(this.currentTask, index, allowQuery));
 	}
 
-	//查询接收情况
+	// 查询接收情况
 	private void doCheckFile() {
 		this.currentTask.addEvent(
 				Event.create(EventType.STATE_CHANGED, "查询接收情况(" + (this.fileCheckInfo.currentQuerySeq() + 1) + ")"));
@@ -161,16 +161,15 @@ class DLT698UpgradeThread extends UpgradeThread {
 	void handleEvent(Event event) {
 		event.done();
 
-		if (EventType.CUSTOMER_BREAK == event.type()) {
-
+		if (EventType.CUSTOMER_BREAK == event.type()) { // 用户取消
 			this.currentTask.stop();
-
 			return;
 		}
+
 		int state = this.currentTask.getState();
 
 		if (this.currentTask.isUpgrading()) {
-			if ((state & Task.STATE_CHECK_FILE) != 0) { //检查升级文件
+			if ((state & Task.STATE_CHECK_FILE) != 0) { // 检查升级文件
 
 				if (EventType.START_TASK == event.type()) {
 
@@ -181,7 +180,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 						this.timer.reset(this.currentTask.getEvents(), 60000);
 					} else {
-						this.currentTask.removeState(10);
+						this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 
 						this.currentTask.getEvents().done();
 
@@ -205,7 +204,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 							if (ResponseCode.ERROR_3 == code) {
 								doResetSoft();
 							}
-							this.currentTask.removeState(10);
+							this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 
 						} else if (this.affirmVersion) {
 							if (this.restartFaultTask) {
@@ -220,7 +219,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级完成"));
 						}
- 
+
 						this.currentTask.stop();
 						return;
 					}
@@ -250,7 +249,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 						return;
 					}
 				}
-			} else if ((state & Task.STATE_START_UPGRADE) != 0) { //正在升级
+			} else if ((state & Task.STATE_START_UPGRADE) != 0) { // 正在升级
 
 				if (EventType.START_TASK == event.type()) {
 
@@ -295,7 +294,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 							this.fileSupplyInfo.clear();
 
-							this.currentTask.addState(8);
+							this.currentTask.addState(Task.STATE_CHECK_FILE);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "终端已完整接收升级文件，查询校验结果"));
 
@@ -340,7 +339,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 											.addEvent(Event.create(EventType.STATE_CHANGED, "终端已回复确认，请稍后重启任务以核对版本号"));
 								}
 							} else {
-								this.currentTask.addState(16);
+								this.currentTask.addState(Task.STATE_FINISH);
 
 								this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级完成"));
 							}
@@ -369,7 +368,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 							if (ResponseCode.ERROR_3 == code) {
 								doResetSoft();
 							}
-							this.currentTask.removeState(10);
+							this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 						}
 						this.currentTask.stop();
 						return;
@@ -381,18 +380,18 @@ class DLT698UpgradeThread extends UpgradeThread {
 						this.currentTask.setCurrentVersion(version);
 
 						if (version.compareTo(this.file.getVersion()) == 0) {
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级成功，版本已相符"));
 						} else if (this.skipLaterVersion && version.compareTo(this.file.getVersion()) > 0) {
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "升级结束，终端当前版本大于目标版本"));
 						} else {
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "终端当前版本与目标版本不符，升级失败"));
 
-							this.currentTask.removeState(10);
+							this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 						}
 
 						this.currentTask.stop();
@@ -425,7 +424,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 									doResetSoft();
 
-									this.currentTask.removeState(10);
+									this.currentTask.removeState(Task.STATE_CHECK_FILE | Task.STATE_START_UPGRADE);
 
 									this.currentTask.stop();
 
@@ -449,7 +448,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 								return;
 							}
 
-							this.currentTask.addState(2);
+							this.currentTask.addState(Task.STATE_START_UPGRADE);
 
 							this.fileSendInfo.start();
 
@@ -490,7 +489,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 						this.timer.reset(this.currentTask.getEvents(), 60000);
 					} else {
 
-						this.currentTask.addState(1);
+						this.currentTask.addState(Task.STATE_RETURN_VERSION);
 
 						this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "不允许查询版本号"));
 
@@ -510,14 +509,14 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 						this.currentTask.setOldVersion(version);
 
-						this.currentTask.addState(1);
+						this.currentTask.addState(Task.STATE_RETURN_VERSION);
 
 						this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "终端返回版本：" + version));
 
 						if (this.skipNeedlessUpgrade) {
 							if (version.compareTo(this.file.getVersion()) == 0) {
 
-								this.currentTask.addState(16);
+								this.currentTask.addState(Task.STATE_FINISH);
 
 								this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "版本一致，不需要重复升级"));
 
@@ -529,7 +528,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 						if (this.skipLaterVersion && version.compareTo(this.file.getVersion()) > 0) {
 
-							this.currentTask.addState(16);
+							this.currentTask.addState(Task.STATE_FINISH);
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "终端版本大于目标版本，结束升级"));
 
@@ -577,6 +576,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 		}
 	}
 
+	// 创建查询接收位图请求报文
 	private DLT698Packet getCheckFileReqPacket(Task task) {
 		byte[] data = new byte[4];
 		int p = 0;
@@ -584,20 +584,22 @@ class DLT698UpgradeThread extends UpgradeThread {
 		this.fileCheckInfo.nextQuerySeq();
 
 		data[p++] = 0;
-		data[p++] = Byte.MIN_VALUE;
+		data[p++] = (byte)0x80;//Byte.MIN_VALUE;
 
 		data[p++] = 0;
 		data[p++] = 0;
 
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 3, data,
+		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 3, data,
 				PacketParser.calcCs(data));
 	}
 
+	// 创建检查升级标识请求报文
 	private DLT698Packet getCheckUpgradeReqPacket(Task task) {
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 4, new byte[0],
+		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 4, new byte[0],
 				(byte) 0);
 	}
 
+	// 创建数据传输报文
 	private DLT698Packet getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
 		byte[] section = this.file.getSections()[index - 1];
 		byte[] data = new byte[4 + section.length];
@@ -619,9 +621,10 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 		byte cs = (byte) (this.parser.calcCs(data, 0, 4) + this.file.getCss()[index - 1]);
 
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 3, data, cs);
+		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 3, data, cs);
 	}
 
+	// 创建启动升级报文
 	private DLT698Packet getUpgradeReqPacket(Task task) {
 		byte[] data = new byte[61];
 		int p = 0;
@@ -668,6 +671,6 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 		byte cs = PacketParser.calcCs(data);
 
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 19, 1, data, cs);
+		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 1, data, cs);
 	}
 }
