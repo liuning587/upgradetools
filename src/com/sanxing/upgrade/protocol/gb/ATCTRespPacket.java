@@ -5,7 +5,7 @@ public class ATCTRespPacket extends GBPacket {
 	private byte state;
 
 	public ATCTRespPacket() {
-		setType(1048576);
+		setType(ATCT_RESP);
 	}
 
 	public void setState(byte state) {

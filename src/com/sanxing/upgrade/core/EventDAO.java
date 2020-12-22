@@ -15,7 +15,7 @@ public class EventDAO {
 
 	public static void insert(String terminalAddr, Object[] events) throws SQLException {
 		PreparedStatement pstmt = DBManager
-				.getPrepStmt("INSERT INTO UPGRADETOOLS.EVENT (TerminalAddr, Time, Type, Remark) VALUES (?, ?, ?, ?)");
+				.getPrepStmt(SQL_INSERT);
 		try {
 			byte b;
 			int i;
@@ -37,7 +37,7 @@ public class EventDAO {
 	}
 
 	public static void load(String terminalAddr, EventList list) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt("SELECT * FROM UPGRADETOOLS.EVENT WHERE TerminalAddr = ?");
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_LOAD);
 		try {
 			pstmt.setString(1, terminalAddr);
 			ResultSet rs = pstmt.executeQuery();
@@ -52,7 +52,7 @@ public class EventDAO {
 	}
 
 	public static void delete(String terminalAddr) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt("DELETE FROM UPGRADETOOLS.EVENT WHERE TerminalAddr = ?");
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_DELETE);
 		try {
 			pstmt.setString(1, terminalAddr);
 			pstmt.execute();
@@ -64,7 +64,7 @@ public class EventDAO {
 	public static void clear() throws SQLException {
 		Statement stmt = DBManager.getStmt();
 		try {
-			stmt.execute("DELETE FROM UPGRADETOOLS.EVENT");
+			stmt.execute(SQL_CLEAR);
 		} finally {
 			stmt.close();
 		}

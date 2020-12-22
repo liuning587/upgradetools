@@ -7,7 +7,7 @@ public class CheckFileRespPacket extends SBPacket {
 	private byte[] ps;
 
 	public CheckFileRespPacket() {
-		setType(8192);
+		setType(CHECK_RCV_RESP);
 	}
 
 	public void setCount(int count) {

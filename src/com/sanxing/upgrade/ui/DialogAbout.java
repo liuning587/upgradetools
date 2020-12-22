@@ -57,12 +57,12 @@ public class DialogAbout extends Dialog {
 
 		label = new Label((Composite) this.shell, 0);
 		label.setLayoutData(new GridData(32));
-		label.setText("终端升级工具 (0.1.12)");
+		label.setText("终端升级工具 (0.1.13)");
 		label.setFont(Resources.getBoldFont("FONT_DEFAULT"));
 
 		label = new Label((Composite) this.shell, 0);
 		label.setLayoutData(new GridData(32));
-		label.setText("Copyright 2010 Sanxing.All Rights Reserved.");
+		label.setText("Copyright 2020 Sanxing.All Rights Reserved.");
 
 		label = new Label((Composite) this.shell, 0);
 		label = new Label((Composite) this.shell, 0);

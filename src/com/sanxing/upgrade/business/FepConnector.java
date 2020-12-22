@@ -97,9 +97,14 @@ public class FepConnector {
 
 		this.responseDispatchThread.start();
 
-		ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE"))
-				.intValue()];
-		if (type == ProtocolType.SB) {
+		ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE")).intValue()];
+		if (type == ProtocolType.DLT698) {
+			this.upgradeThreads = (UpgradeThread[]) new DLT698UpgradeThread[this.taskCount];
+			for (int i = 0; i < this.taskCount; i++) {
+				this.upgradeThreads[i] = new DLT698UpgradeThread(this);
+				this.upgradeThreads[i].start();
+			}
+		} else if (type == ProtocolType.SB) {
 			this.upgradeThreads = (UpgradeThread[]) new SBUpgradeThread[this.taskCount];
 			for (int i = 0; i < this.taskCount; i++) {
 				this.upgradeThreads[i] = new SBUpgradeThread(this);

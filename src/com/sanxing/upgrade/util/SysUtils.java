@@ -89,7 +89,7 @@ public class SysUtils {
 
 	public static boolean isDate(String value) {
 		if (patternIsDate == null)
-			patternIsDate = Pattern.compile("(\\d{4})[-/\\.](\\d{1,2})[-/\\.](\\d{1,2})");
+			patternIsDate = Pattern.compile(REGEX_DATE);
 		Matcher matcher = patternIsDate.matcher(value);
 		if (!matcher.matches())
 			return false;
@@ -99,7 +99,7 @@ public class SysUtils {
 
 	public static boolean isIP(String value) {
 		if (patternIsIP == null)
-			patternIsIP = Pattern.compile("(\\d{1,3}).(\\d{1,3}).(\\d{1,3}).(\\d{1,3})");
+			patternIsIP = Pattern.compile(REGEX_IP);
 		Matcher matcher = patternIsIP.matcher(value);
 		if (!matcher.matches()) {
 			return false;
@@ -111,7 +111,7 @@ public class SysUtils {
 
 	public static Date getDate(String value) {
 		if (patternIsDate == null)
-			patternIsDate = Pattern.compile("(\\d{4})[-/\\.](\\d{1,2})[-/\\.](\\d{1,2})");
+			patternIsDate = Pattern.compile(REGEX_DATE);
 		Matcher matcher = patternIsDate.matcher(value);
 		if (!matcher.matches())
 			return null;
@@ -132,14 +132,14 @@ public class SysUtils {
 
 	public static boolean is24Time(String value) {
 		if (patternIs24Time == null)
-			patternIs24Time = Pattern.compile("(0?[\\d]|1[\\d]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])");
+			patternIs24Time = Pattern.compile(REGEX_24TIME);
 		Matcher matcher = patternIs24Time.matcher(value);
 		return matcher.matches();
 	}
 
 	public static Date get24Time(String value) {
 		if (patternIs24Time == null)
-			patternIs24Time = Pattern.compile("(0?[\\d]|1[\\d]|2[0-3]):([0-5]?[0-9]):([0-5]?[0-9])");
+			patternIs24Time = Pattern.compile(REGEX_24TIME);
 		Matcher matcher = patternIs24Time.matcher(value);
 		if (!matcher.matches())
 			return null;

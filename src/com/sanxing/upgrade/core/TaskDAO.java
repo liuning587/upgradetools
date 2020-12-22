@@ -15,8 +15,7 @@ public class TaskDAO {
 	private static final String SQL_LOAD = "SELECT * FROM UPGRADETOOLS.TASK";
 
 	public static void insert(Task task) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt(
-				"INSERT INTO UPGRADETOOLS.TASK (TerminalAddr, OldVersion, CurrentVersion, State, RcvRate, FileSign, Remark, LastTime) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_INSERT);
 		try {
 			pstmt.setString(1, task.getTerminalAddr());
 			pstmt.setString(2, task.getOldVersion());
@@ -37,8 +36,7 @@ public class TaskDAO {
 	}
 
 	public static void update(Task task) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt(
-				"UPDATE UPGRADETOOLS.TASK Set OldVersion = ?, CurrentVersion = ?, State = ?, RcvRate = ?, FileSign = ?, Remark = ?, LastTime = ? WHERE TerminalAddr = ?");
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_UPDATE);
 		try {
 			pstmt.setString(1, task.getOldVersion());
 			pstmt.setString(2, task.getCurrentVersion());
@@ -60,7 +58,7 @@ public class TaskDAO {
 	}
 
 	public static void delete(Task task) throws SQLException {
-		PreparedStatement pstmt = DBManager.getPrepStmt("DELETE FROM UPGRADETOOLS.TASK WHERE TerminalAddr = ?");
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_DELETE);
 		try {
 			pstmt.setString(1, task.getTerminalAddr());
 			pstmt.execute();
@@ -72,7 +70,7 @@ public class TaskDAO {
 	public static void clear() throws SQLException {
 		Statement stmt = DBManager.getStmt();
 		try {
-			stmt.execute("DELETE FROM UPGRADETOOLS.TASK");
+			stmt.execute(SQL_CLEAR);
 		} finally {
 			stmt.close();
 		}
@@ -81,7 +79,7 @@ public class TaskDAO {
 	public static void load(TaskList list) throws SQLException {
 		Statement stmt = DBManager.getStmt();
 		try {
-			ResultSet rs = stmt.executeQuery("SELECT * FROM UPGRADETOOLS.TASK");
+			ResultSet rs = stmt.executeQuery(SQL_LOAD);
 			while (rs.next()) {
 				Task task = new Task(rs.getString("TerminalAddr"));
 				task.setOldVersion(rs.getString("OldVersion"));

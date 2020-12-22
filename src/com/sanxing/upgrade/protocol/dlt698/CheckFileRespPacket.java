@@ -1,7 +1,7 @@
-package com.sanxing.upgrade.protocol.gb;
+package com.sanxing.upgrade.protocol.dlt698;
 
-public class CheckFileRespPacket extends GBPacket {
-	private static final long serialVersionUID = 8023477765195486026L;
+public class CheckFileRespPacket extends DLT698Packet {
+	private static final long serialVersionUID = 5109635052803852169L;
 	private int count;
 	private int lastIndex;
 	private byte[] ps;
