@@ -67,4 +67,4 @@ public class FileSupplyInfo {
 			this.lostPs[j] = Integer.valueOf(strs[j]).intValue();
 		this.currentIndex = 0;
 	}
- }
+}

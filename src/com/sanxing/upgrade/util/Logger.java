@@ -59,13 +59,11 @@ public class Logger {
 		Color color = BLACK;
 		switch (loginfo.getType()) {
 //		case null: fixme:  注意java语法
-//			color = RED;
-//			break;
-		case WARNING:
-			color = BLUE;
-			break;
 		default:
 			color = RED;
+			break;
+		case WARNING:
+			color = BLUE;
 			break;
 		}
 		String message = String.valueOf(SysUtils.timeToStr(loginfo.getTime())) + " " + loginfo.getMessage() + "\n";

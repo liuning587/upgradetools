@@ -385,7 +385,7 @@ public class DialogNewTask extends Dialog {
 					}
 					StringBuffer buffer = new StringBuffer();
 
-//					try { fixme: 注意java语法
+//					try {
 //					} catch (IOException e1) {
 //						MessageDialog.openError(DialogNewTask.this.shell, "注意", "读取所选择的文件失败。");
 //						return;

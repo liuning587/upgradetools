@@ -27,6 +27,7 @@ public class FepConnectController {
 		for (int i = 0; i < this.connectors.length; i++) {
 			this.connectors[i].close();
 		}
+
 		this.connectors = null;
 	}
 }

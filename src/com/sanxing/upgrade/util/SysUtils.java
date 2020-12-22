@@ -6,8 +6,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class SysUtils {
-	private static final String MAX_INT = String.valueOf(2147483647);
-	private static final String MIN_INT = String.valueOf(-2147483648);
+	private static final String MAX_INT = String.valueOf(2147483647); //0x7fffffff
+	private static final String MIN_INT = String.valueOf(-2147483648);//0x80000000
 
 	private static final String REGEX_DATE = "(\\d{4})[-/\\.](\\d{1,2})[-/\\.](\\d{1,2})";
 
