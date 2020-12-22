@@ -150,7 +150,7 @@ public class Resources {
 		fontRegistry.put("FONT_DEFAULT", new FontData[] { new FontData("宋体", 9, 0) });
 
 		properties.clear();
-		FileInputStream fs = new FileInputStream(getPropertiesFilename("custom.properties"));
+		FileInputStream fs = new FileInputStream(getPropertiesFilename(FILENAME_CUSTOM));
 		try {
 			properties.load(fs);
 		} finally {
@@ -169,7 +169,7 @@ public class Resources {
 	}
 
 	public static void saveCustomProperty() throws Exception {
-		FileOutputStream stream = new FileOutputStream(getPropertiesFilename("custom.properties"));
+		FileOutputStream stream = new FileOutputStream(getPropertiesFilename(FILENAME_CUSTOM));
 		try {
 			properties.store(stream, (String) null);
 		} finally {
