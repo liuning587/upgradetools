@@ -253,7 +253,7 @@ public class DLT698PacketParser extends PacketParser {
 		}
 		if (AFN_LINK == afn) {
 			packet = new LinkReqPacket();
-			packet.setType(4);
+			packet.setType(Packet.LINK_CHECK_REQ);
 		} else if (afn == AFN_CONFIRM) {
 			if (fn == 1) {
 				packet = new ConfirmPacket();
@@ -281,7 +281,7 @@ public class DLT698PacketParser extends PacketParser {
 						.setVersion(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, p, p + 4))).trim());
 			}
 
-		} else if (AFN_TRANSFER == afn && 3 == fn) { //查询位图
+		} else if (AFN_TRANSFER == afn && 3 == fn) { //发送升级数据
 			packet = new CheckFileRespPacket();
 			packet.setType(Packet.CHECK_RCV_RESP);
 
