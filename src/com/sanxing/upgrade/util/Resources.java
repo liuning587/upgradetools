@@ -150,11 +150,15 @@ public class Resources {
 		fontRegistry.put("FONT_DEFAULT", new FontData[] { new FontData("宋体", 9, 0) });
 
 		properties.clear();
-		FileInputStream fs = new FileInputStream(getPropertiesFilename(FILENAME_CUSTOM));
 		try {
+			FileInputStream fs = new FileInputStream(getPropertiesFilename(FILENAME_CUSTOM));
 			properties.load(fs);
-		} finally {
 			fs.close();
+		} catch (Exception ex) {
+			InputStreamReader custom = new InputStreamReader(Resources.class.getResourceAsStream("/custom.properties"));
+			properties.load(custom);
+			custom.close();
+		} finally {
 		}
 	}
 
