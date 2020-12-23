@@ -44,7 +44,7 @@ public class DLT698PacketParser extends PacketParser {
 
 		int p = 0;
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
@@ -52,9 +52,9 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
-		wData[p++] = 64;
+		wData[p++] = 0x40;
 
 		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
 		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
@@ -77,7 +77,7 @@ public class DLT698PacketParser extends PacketParser {
 
 		wData[p++] = (byte) (calcCs(wData, 6, 12) + dataCs);
 
-		wData[p] = 22;
+		wData[p] = 0x16;
 
 		packet.setData(wData);
 
@@ -95,7 +95,7 @@ public class DLT698PacketParser extends PacketParser {
 
 		int p = 0;
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
@@ -103,7 +103,7 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = 65;
 
@@ -128,7 +128,7 @@ public class DLT698PacketParser extends PacketParser {
 
 		wData[p++] = (byte) (calcCs(wData, 6, 12) + 0);
 
-		wData[p] = 22;
+		wData[p] = 0x16;
 
 		packet.setData(wData);
 
@@ -165,21 +165,7 @@ public class DLT698PacketParser extends PacketParser {
 
 		while (i < data.length) {
 
-			if (data.length >= 8) {
-				byte[] aData = Arrays.copyOfRange(data, 0, 8);
-				if (isATCTResp(aData)) {
-					DLT698Packet DLT698Packet = new DLT698Packet();
-					DLT698Packet.setData(aData);
-					list.add(DLT698Packet);
-					result = true;
-
-					i += 8;
-
-					continue;
-				}
-			}
-
-			while (i < data.length && 104 != data[i]) {
+			while (i < data.length && 0x68 != data[i]) {
 				i++;
 			}
 
@@ -187,7 +173,7 @@ public class DLT698PacketParser extends PacketParser {
 				break;
 			}
 
-			if (104 != data[i + 5]) {
+			if (0x68 != data[i + 5]) {
 				i++;
 
 				continue;
@@ -201,7 +187,7 @@ public class DLT698PacketParser extends PacketParser {
 				continue;
 			}
 
-			if (22 != data[i + 8 + len - 1]) {
+			if (0x16 != data[i + 8 + len - 1]) {
 				i++;
 
 				break;
@@ -231,7 +217,7 @@ public class DLT698PacketParser extends PacketParser {
 	}
 
 	public boolean isFepResp(Packet packet) {
-		return (getTerminalAddr(packet).compareTo("00000000") == 0);
+		return false;//(getTerminalAddr(packet).compareTo("00000000") == 0);
 	}
 
 	public Packet packHeartbeatRequest(byte msta) {
@@ -265,39 +251,39 @@ public class DLT698PacketParser extends PacketParser {
 				break;
 			}
 		}
-		if (2 == afn) {
+		if (AFN_LINK == afn) {
 			packet = new LinkReqPacket();
 			packet.setType(4);
-		} else if (afn == 0) {
+		} else if (afn == AFN_CONFIRM) {
 			if (fn == 1) {
 				packet = new ConfirmPacket();
-				packet.setType(512);
+				packet.setType(Packet.CONFIRM_RESP);
 				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
 			} else if (fn == 2) {
 				packet = new ConfirmPacket();
-				packet.setType(512);
+				packet.setType(Packet.CONFIRM_RESP);
 				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
 			} else if (fn == 3) {
 				byte b = data[p++];
 				if (b == 19 || b == 2) {
 					packet = new ConfirmPacket();
-					packet.setType(512);
+					packet.setType(Packet.CONFIRM_RESP);
 					p += 4;
 					((ConfirmPacket) packet).setState(data[p]);
 				}
 			}
-		} else if (12 == afn) {
+		} else if (AFN_QRYD1 == afn) { //查询版本
 			if (fn == 1) {
 				packet = new QueryVersionRespPacket();
-				packet.setType(1024);
+				packet.setType(Packet.VERSION_RESP);
 				p += 12;
 				((QueryVersionRespPacket) packet)
 						.setVersion(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, p, p + 4))).trim());
 			}
 
-		} else if (19 == afn && 3 == fn) {
+		} else if (AFN_TRANSFER == afn && 3 == fn) { //查询位图
 			packet = new CheckFileRespPacket();
-			packet.setType(8192);
+			packet.setType(Packet.CHECK_RCV_RESP);
 
 			int count = data[p++] & 0xFF | data[p++] << 8 & 0xFF00;
 			((CheckFileRespPacket) packet).setCount(count);
