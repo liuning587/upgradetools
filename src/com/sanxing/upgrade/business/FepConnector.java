@@ -218,15 +218,15 @@ public class FepConnector {
 			Packet packet = this.parser.unpackReponse((Packet) event.attachment());
 
 			switch (packet.getType()) {
-			case 1:
+			case Packet.LOGIN_RESP:
 				Logger.warning("通道" + this.id + ":已登录前置机");
 				login();
 				break;
-			case 2:
+			case Packet.HB_RESP:
 				Logger.info("通道" + this.id + ":收到心跳应答");
 				heartbeat();
 				break;
-			case 512:
+			case Packet.CONFIRM_RESP:
 				Logger.info("通道" + this.id + ":收到确认应答");
 				login();
 				heartbeat();

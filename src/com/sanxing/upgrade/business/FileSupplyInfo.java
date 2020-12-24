@@ -15,6 +15,8 @@ public class FileSupplyInfo {
 	}
 
 	public float sendRate() {
+		if (this.sectionCount == 0)
+			return (float)0.0;
 		return (float)(this.sectionCount - this.lostPs.length - this.currentIndex) / this.sectionCount;
 	}
 

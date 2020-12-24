@@ -41,7 +41,7 @@ public class GB09PacketParser extends GBPacketParser {
 
 		int p = 0;
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = (byte) (usrLen << 2 | 0x2);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
@@ -49,7 +49,7 @@ public class GB09PacketParser extends GBPacketParser {
 		wData[p++] = (byte) (usrLen << 2 | 0x2);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = 64;
 
@@ -74,7 +74,7 @@ public class GB09PacketParser extends GBPacketParser {
 
 		wData[p++] = (byte) (calcCs(wData, 6, 12) + dataCs);
 
-		wData[p] = 22;
+		wData[p] = 0x16;
 
 		packet.setData(wData);
 

@@ -47,7 +47,11 @@ public class TaskList implements Serializable {
 		}
 		result.canStartCount = result.count - result.runningCount - result.finishedCount;
 
-		result.finishedRate = Math.round(result.finishedCount / result.count * 100.0F * 100.0F) / 100.0F;
+		if (result.count != 0) {
+			result.finishedRate = Math.round(result.finishedCount / result.count * 100.0F * 100.0F) / 100.0F;
+		} else {
+			result.finishedRate = (float)0;
+		}
 
 		return result;
 	}

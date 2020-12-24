@@ -24,6 +24,7 @@ public class DLT698PacketParser extends PacketParser {
 	public static final byte FN_LOGIN = 1;
 	public static final byte FN_HB = 3;
 	private static byte PFC = 0;
+	private static int Pmax698PtlFrameLen = 2200;
 
 	private static byte[] seqLock = new byte[0];
 
@@ -84,87 +85,480 @@ public class DLT698PacketParser extends PacketParser {
 		return packet;
 	}
 
-	public DLT698Packet packResetRequest(String terminalAddr, byte msta) {
+	//查询位图: 68 17 00 43 05 17 03 11 11 11 11 39 82 98 05 01 3F F0 01 04 00 00 E9 71 16
+	//响应: 68 1E 00 C3 05 17 03 11 11 11 11 39 6E B5 85 01 3F F0 01 04 00 01 04 11 FF FF 80 00 00 B8 85 16 
+	public DLT698Packet packCheckFileRequest(String terminalAddr, byte msta) {
 		DLT698Packet packet = new DLT698Packet();
 		packet.setTerminalAddr(terminalAddr);
 		packet.setMsta(msta);
 
-		byte[] data = new byte[16];
-		int usrLen = 12 + data.length;
-		byte[] wData = new byte[usrLen + 8];
-
+		byte[] wData = new byte[25];
 		int p = 0;
+		int crc;
 
 		wData[p++] = 0x68;
-
-		wData[p++] = (byte) (usrLen << 2 | 0x1);
-		wData[p++] = (byte) (usrLen << 2 >> 8);
-
-		wData[p++] = (byte) (usrLen << 2 | 0x1);
-		wData[p++] = (byte) (usrLen << 2 >> 8);
-
-		wData[p++] = 0x68;
-
-		wData[p++] = 65;
-
-		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
-		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = 0x17;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
 		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
 		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
-		wData[p++] = (byte) (msta << 1);
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
 
-		wData[p++] = 1;
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x05;
+		wData[p++] = 0x01;
+		wData[p++] = (byte)(newSEQ() & 0x1f);
+		wData[p++] = (byte)0xF0;
+		wData[p++] = 0x01;
+		wData[p++] = 0x04;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
 
-		wData[p++] = (byte) (0x60 | newSEQ() & 0xF);
-
-		wData[p++] = 0;
-		wData[p++] = 0;
-
-		wData[p++] = 2;
-		wData[p++] = 0;
-
-		System.arraycopy(data, 0, wData, p, data.length);
-		p += data.length;
-
-		wData[p++] = (byte) (calcCs(wData, 6, 12) + 0);
-
-		wData[p] = 0x16;
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
 
 		packet.setData(wData);
 
 		return packet;
 	}
 
+	//查询命令结果: 68 17 00 43 05 17 03 11 11 11 11 39 82 98 05 01 3F F0 01 03 00 00 EC FD 16
+	public DLT698Packet packCheckUpgradeRequest(String terminalAddr, byte msta) {
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+		
+		byte[] wData = new byte[25];
+		int p = 0;
+		int crc;
+		
+		wData[p++] = 0x68;
+		wData[p++] = 0x17;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x05;
+		wData[p++] = 0x01;
+		wData[p++] = (byte)(newSEQ() & 0x1f);
+		wData[p++] = (byte)0xF0;
+		wData[p++] = 0x01;
+		wData[p++] = 0x03;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+		
+		packet.setData(wData);
+		
+		return packet;
+	}
+
+	//启动升级: 68 34 00 43 05 17 03 11 11 11 11 39 BB 84 07 01 01 F0 01 07 00 02 03 02 06 0A 00 0A 00 06 00 
+	//00 43 54 04 03 E0 0A 00 16 00 12 04 00 02 02 16 00 09 00 00 1D 59 16
+	public DLT698Packet packStartUpgradeRequest(String terminalAddr, byte msta, int fileSize, int blockSize, int fileType) {
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+		
+		byte[] wData = new byte[54];
+		int p = 0;
+		int crc;
+		
+		wData[p++] = 0x68;
+		wData[p++] = 0x34;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x05;
+		wData[p++] = 0x01;
+		wData[p++] = (byte)(newSEQ() & 0x1f);
+		wData[p++] = (byte)0xF0;
+		wData[p++] = 0x01;
+		wData[p++] = 0x07;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x02;
+		wData[p++] = 0x03;
+		wData[p++] = 0x02;
+		wData[p++] = 0x06;
+		wData[p++] = 0x0A;
+		wData[p++] = 0x00;
+		wData[p++] = 0x0A;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x06; //文件大小
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x04;
+		wData[p++] = 0x03;
+		wData[p++] = (byte)0xE0; //文件属性
+		wData[p++] = 0x0A;
+		wData[p++] = 0x00; //文件版本
+		wData[p++] = 0x16;
+		wData[p++] = (byte)fileType; //终端文件
+
+		wData[p++] = 0x12; //传输块大小
+		wData[p++] = (byte)(blockSize >> 8);
+		wData[p++] = (byte)(blockSize >> 0);
+
+		wData[p++] = 0x02; //校验2个成员
+		wData[p++] = 0x02;
+		wData[p++] = 0x16; 
+		wData[p++] = 0x00; //CRC校验
+		wData[p++] = 0x09; //校验值
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x00;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+		
+		packet.setData(wData);
+		
+		return packet;
+	}
+
+	//传输数据
+	public DLT698Packet packUpgradeDataRequest(String terminalAddr, byte msta, int index, byte[] section, boolean allowQuery) {
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+		
+		byte[] wData = new byte[34 + section.length]; //注意大报文长度不止34
+		int p = 0;
+		int crc;
+		
+		wData[p++] = 0x68;
+		if (wData.length <= 0x3FFF) {
+			wData[p++] = (byte)(wData.length >> 0);
+			wData[p++] = (byte)(wData.length >> 8);
+		} else {
+			//todo:
+			wData[p++] = 0x34;
+			wData[p++] = 0x00;
+		}
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x07;
+		wData[p++] = 0x01;
+		wData[p++] = (byte)(newSEQ() & 0x1f);
+		wData[p++] = (byte)0xF0;
+		wData[p++] = 0x01;
+		wData[p++] = 0x08;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x02;
+		wData[p++] = 0x02;
+		wData[p++] = 0x12; //块序号
+		wData[p++] = (byte)(index >> 8);
+		wData[p++] = (byte)(index >> 0);
+
+		wData[p++] = 0x09;
+		wData[p++] = (byte)0x82; //todo: 大包升级需要83
+		wData[p++] = (byte)(section.length >> 8);
+		wData[p++] = (byte)(section.length >> 0);
+
+		System.arraycopy(section, 0, wData, p, section.length);
+		p += section.length;
+
+		wData[p++] = 0x00;
+		
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+		
+		if (allowQuery) {
+			//todo: 添加查询位图
+		}
+		
+		packet.setData(wData);
+		
+		return packet;
+	}
+	
+	//查询版本: 68 17 00 43 05 29 31 23 11 11 11 39 36 C5 05 01 3F 43 00 03 00 00 1F A2 16
+	//响应: 68 47 00 C3 05 29 31 23 11 11 11 39 A1 BD 85 01 3F 43 00 03 00 01 02 06 0A 04 53 58 44 51 0A 04 56 31 2E 30 0A 
+	//     06 31 39 30 33 30 36 0A 04 33 36 30 35 0A 06 31 38 30 38 30 33 0A 08 30 30 30 30 30 30 30 30 00 00 F8 4F 16
+	//编译时间: 68 17 00 43 05 29 31 23 11 11 11 39 36 C5 05 01 3F FF 03 02 00 00 BA F4 16
+	//响应: 68 21 00 C3 05 29 31 23 11 11 11 39 59 67 85 01 3F FF 03 02 00 01 1C 07 E4 0C 0B 0E 08 07 00 00 8E 3A 16
 	public DLT698Packet packQueryVersionRequest(String terminalAddr, byte msta) {
-		return packRequest(terminalAddr, msta, (byte) 12, 1, new byte[0], (byte) 0);
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+
+		byte[] wData = new byte[25];
+		int p = 0;
+		int crc;
+
+		wData[p++] = 0x68;
+		wData[p++] = 0x17;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x05;
+		wData[p++] = 0x01;
+		wData[p++] = (byte) (newSEQ() & 0x1f);
+		wData[p++] = 0x43;
+		wData[p++] = 0x00;
+		wData[p++] = 0x03;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+
+		packet.setData(wData);
+
+		return packet;
 	}
 
-	public String getTerminalAddr(byte[] data) {
-		int p = 1;
-
-		StringBuffer terminalAddr = new StringBuffer();
-		terminalAddr.append(SysUtils.byteToHex(data[p++]));
-		terminalAddr.append(SysUtils.byteToHex(data[p++]));
-		terminalAddr.append(SysUtils.byteToHex(data[p + 1]));
-		terminalAddr.append(SysUtils.byteToHex(data[p++]));
-		return terminalAddr.toString();
-	}
-
+	//取消升级
+	//68 1B 00 43 05 17 03 11 11 11 11 39 7D 7A 07 01 01 F0 01 01 00 01 01 0F 00 00 0F 3B 16
 	public DLT698Packet packCancelUpgradeRequest(String terminalAddr, String upgradePassword, byte msta) {
-		return packRequest(terminalAddr, msta, (byte) 19, 2, new byte[0], (byte) 0);
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+
+		byte[] wData = new byte[29];
+		int p = 0;
+		int crc;
+
+		wData[p++] = 0x68;
+		wData[p++] = 0x1B;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x07;
+		wData[p++] = 0x01;
+		wData[p++] = (byte) (newSEQ() & 0x1f);
+		wData[p++] = (byte)0xF0;
+		wData[p++] = 0x01;
+		wData[p++] = 0x01;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x01; //参数
+		wData[p++] = 0x01;
+		wData[p++] = 0x0F;
+		wData[p++] = 0x00;
+
+		wData[p++] = 0x00;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+
+		packet.setData(wData);
+
+		return packet;
 	}
 
+	//请求复位
+	//68 18 00 43 05 17 03 11 11 11 11 39 CE 84 07 01 00 43 00 01 00 00 00 9E 75 16
+	//68 1A 00 C3 05 17 03 11 11 11 11 39 3B EB 87 01 00 43 00 01 00 00 00 00 00 3B 3A 16
 	public DLT698Packet packResetSoftRequest(String terminalAddr, String terminalPassword, byte msta) {
-		return packResetRequest(terminalAddr, msta);
+		DLT698Packet packet = new DLT698Packet();
+		packet.setTerminalAddr(terminalAddr);
+		packet.setMsta(msta);
+
+		byte[] wData = new byte[26];
+		int p = 0;
+		int crc;
+
+		wData[p++] = 0x68;
+		wData[p++] = 0x18;
+		wData[p++] = 0x00;
+		wData[p++] = 0x43; //ctrl
+		wData[p++] = 0x05;
+		wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+		wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+		wData[p++] = (byte)msta;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x07;
+		wData[p++] = 0x01;
+		wData[p++] = (byte) (newSEQ() & 0x1f);
+		wData[p++] = 0x43;
+		wData[p++] = 0x00;
+		wData[p++] = 0x01;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+		wData[p++] = 0x00;
+
+		crc = PacketParser.calcCrc16(wData, 1, p - 1);
+		wData[p++] = (byte) ((crc >> 0) & 0xff);
+		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		
+		wData[p++] = 0x16;
+
+		packet.setData(wData);
+
+		return packet;
 	}
 
+	public int isVaild(byte[] buf) {
+		int fLen;
+		int hlen;
+		int cs; 
+	
+		if (buf.length < 1) {
+			return 0;
+		}
+	
+		if (0x68 != buf[0]) {
+			return -1;
+		}
+
+		if (buf.length < 3) {
+			return 0;
+		}
+	
+		fLen = ((int)(buf[2]&0x3f) << 8) + (int)buf[1];
+		if ((buf[2]&0x40) != 0) {
+			fLen *= 1024;
+		}
+		if ((fLen > Pmax698PtlFrameLen-2) || (fLen < 7)) {
+			return -1;
+		}
+
+		if (buf.length < 6) {
+			return 0;
+		}
+	
+		hlen = 6 + (int)(buf[4]&0x0f) + 1;
+
+		if (buf.length < (hlen + 2)) {
+			return 0;
+		}
+	
+		//check hcs
+		cs = PacketParser.calcCrc16(buf, 1, hlen-1);
+		if (cs != (((int)(buf[hlen+1]) << 8) + (int)(buf[hlen]))) {
+			return -1;
+		}
+	
+		if (buf.length < (fLen+1)) {
+			return 0;
+		}
+	
+		//check fcs
+		cs = PacketParser.calcCrc16(buf, 1, fLen-2);
+		if (cs != (((int)(buf[fLen]) << 8) + (int)(buf[fLen-1]))) {
+			return -1;
+		}
+	
+		if (buf.length < (fLen+2)) {
+			return 0;
+		}
+		if (0x16 != buf[fLen+1]) {
+			return -1;
+		}
+	
+		return fLen + 2;
+	}
+	
+	//寻找合法报文
 	public boolean filterPacket(Packet packet, List<Packet> list) {
 		byte[] data = packet.getData();
 		boolean result = false;
 		int i = 0;
+		int len;
 
 		while (i < data.length) {
-
 			while (i < data.length && 0x68 != data[i]) {
 				i++;
 			}
@@ -173,134 +567,154 @@ public class DLT698PacketParser extends PacketParser {
 				break;
 			}
 
-			if (0x68 != data[i + 5]) {
+			len = isVaild(Arrays.copyOfRange(data, i, data.length));
+			if (len <= 0) {
 				i++;
-
 				continue;
 			}
-
-			int len = (data[i + 1] & 0xFF | data[i + 2] << 8 & 0xFF00) >>> 2;
-
-			if (8 + len > data.length - i) {
-				i++;
-
-				continue;
+			
+			if ((data[i+3] & 0x80) == 0x80) { //DIR1: 终端-->主站
+				DLT698Packet validPacket = new DLT698Packet();
+				//validPacket.setAfn(data[i+12]); //todo: 
+				validPacket.setData(Arrays.copyOfRange(data, i, i + len));
+				list.add(validPacket);
+				result = true;
 			}
-
-			if (0x16 != data[i + 8 + len - 1]) {
-				i++;
-
-				break;
-			}
-
-			DLT698Packet validPacket = new DLT698Packet();
-
-			validPacket.setAfn(data[12]);
-			validPacket.setData(Arrays.copyOfRange(data, i, i + len + 8));
-			list.add(validPacket);
-			result = true;
-
-			i += len + 13;
+			i += len;
 		}
 		return result;
 	}
 
-	public String getTerminalAddr(Packet packet) {
-		byte[] data = packet.getData();
-		StringBuffer buffer = new StringBuffer();
-		buffer.append(SysUtils.byteToHex(data[8]));
-		buffer.append(SysUtils.byteToHex(data[7]));
-		buffer.append(SysUtils.byteToHex(data[10]));
-		buffer.append(SysUtils.byteToHex(data[9]));
+	public String getTerminalAddr(byte[] data) {
+		StringBuffer terminalAddr = new StringBuffer();
+		terminalAddr.append(SysUtils.byteToHex(data[10]));
+		terminalAddr.append(SysUtils.byteToHex(data[9]));
+		terminalAddr.append(SysUtils.byteToHex(data[8]));
+		terminalAddr.append(SysUtils.byteToHex(data[7]));
+		terminalAddr.append(SysUtils.byteToHex(data[6]));
+		terminalAddr.append(SysUtils.byteToHex(data[5]));
 
-		return buffer.toString();
+		return terminalAddr.toString();
+	}
+
+	//从报文中提取终端地址字符串
+	public String getTerminalAddr(Packet packet) {
+		return getTerminalAddr(packet.getData());
 	}
 
 	public boolean isFepResp(Packet packet) {
-		return false;//(getTerminalAddr(packet).compareTo("00000000") == 0);
+		return (getTerminalAddr(packet).compareTo("000000000000") == 0);
 	}
 
 	public Packet packHeartbeatRequest(byte msta) {
-		return packRequest("00000000", msta, (byte) 2, 3, new byte[0], (byte) 0);
+		return packRequest("000000000000", msta, (byte) 2, 3, new byte[0], (byte) 0);
 	}
 
 	public Packet packLoginRequest(byte msta, String password) {
-		return packRequest("00000000", msta, (byte) 2, 1, new byte[0], (byte) 0);
+		return packRequest("000000000000", msta, (byte) 2, 1, new byte[0], (byte) 0);
 	}
 
+	//解析响应帧
 	public Packet unpackReponse(Packet packet) {
 		byte[] data = packet.getData();
-		byte afn = ((DLT698Packet) packet).getAfn();
-
-		int p = 11;
-
-		byte msta = (byte) (data[p++] >>> 1);
-
-		p++;
-
-		p++;
-
-		p += 2;
-
-		byte dt1 = data[p++];
-		byte dt2 = data[p++];
-		int fn = dt2 * 8;
-		for (int i = 0; i < 8; i++) {
-			if ((dt1 & 1 << i) != 0) {
-				fn += i + 1;
-				break;
-			}
-		}
-		if (AFN_LINK == afn) {
-			packet = new LinkReqPacket();
-			packet.setType(Packet.LINK_CHECK_REQ);
-		} else if (afn == AFN_CONFIRM) {
-			if (fn == 1) {
-				packet = new ConfirmPacket();
-				packet.setType(Packet.CONFIRM_RESP);
-				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
-			} else if (fn == 2) {
-				packet = new ConfirmPacket();
-				packet.setType(Packet.CONFIRM_RESP);
-				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
-			} else if (fn == 3) {
-				byte b = data[p++];
-				if (b == 19 || b == 2) {
-					packet = new ConfirmPacket();
-					packet.setType(Packet.CONFIRM_RESP);
-					p += 4;
-					((ConfirmPacket) packet).setState(data[p]);
-				}
-			}
-		} else if (AFN_QRYD1 == afn) { //查询版本
-			if (fn == 1) {
+		byte msta = data[11]; //CA
+		
+		int p = 14; //apdu offset
+		
+		if (data[p] == 0x85 && data[p+1] == 0x01) {
+			p += 3;
+			if (data[p] == 0x43 && data[p+1] == 0x00 && data[p+2] == 0x03 && data[p+3] == 0x00 && data[p+4] == 0x01) { //电气设备-版本信息
+				//01 结果:数据
+				//02 06 版本信息:6个成员
+				//0A 04 53 58 44 51 厂商代码:SXDQ
+				//0A 04 56 31 2E 30 软件版本号:V1.0
+				//0A 06 31 39 30 33 30 36 软件版本日期:190306
+				//0A 04 33 36 30 35 硬件版本号:3605
+				//0A 06 31 38 30 38 30 33 硬件版本日期:180803
+				//0A 08 30 30 30 30 30 30 30 30 厂家扩展信息:00000000
 				packet = new QueryVersionRespPacket();
 				packet.setType(Packet.VERSION_RESP);
-				p += 12;
-				((QueryVersionRespPacket) packet)
-						.setVersion(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, p, p + 4))).trim());
+				p += 4+11;
+				((QueryVersionRespPacket) packet).setVersion(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, p, p + 4))).trim());
+			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x04 && data[p+3] == 0x00 && data[p+4] == 0x01 && data[p+5] == 0x04) { //文件分块传输管理-传输块状态字
+				//01 结果:数据
+				//04 11 FF FF 80 传输块状态字:111111111111111110000000
+				p += 6;
+				packet = new CheckFileRespPacket();
+				packet.setType(Packet.CHECK_RCV_RESP);
+		
+				int count = (int)data[p++];
+				if ((count & 0x80) == 0x80) {
+			        switch (count & 0x7f) {
+			            case 1:
+			            	count = data[p++];
+			                break;
+			            case 2:
+			            	count = (data[p] << 8) | data[p + 1];
+			                p += 2;
+			                break;
+			            case 3:
+			            	count = (data[p] << 16) | (data[p + 1] << 8) | data[p + 2];
+			                p += 3;
+			                break;
+			            case 4:
+			            	count = (data[p] << 24) | (data[p + 1] << 16) | (data[p + 2] << 8) | data[p + 3];
+			                p += 4;
+			                break;
+			            default:
+			            	break;
+			        }
+				}
+
+				((CheckFileRespPacket) packet).setCount(count);
+				((CheckFileRespPacket) packet).setLastIndex(0); //fixme: 需要检查
+
+				if (count == 0) {
+					((CheckFileRespPacket) packet).setPs(new byte[0]);
+				} else {
+					((CheckFileRespPacket) packet).setPs(Arrays.copyOfRange(data, p, p + (count + 7) / 8));
+				}
 			}
-
-		} else if (AFN_TRANSFER == afn && 3 == fn) { //发送升级数据
-			packet = new CheckFileRespPacket();
-			packet.setType(Packet.CHECK_RCV_RESP);
-
-			int count = data[p++] & 0xFF | data[p++] << 8 & 0xFF00;
-			((CheckFileRespPacket) packet).setCount(count);
-
-			((CheckFileRespPacket) packet).setLastIndex(data[p++] & 0xFF | data[p++] << 8 & 0xFF00);
-
-			if (count == 0) {
-				((CheckFileRespPacket) packet).setPs(new byte[0]);
-			} else {
-				((CheckFileRespPacket) packet).setPs(Arrays.copyOfRange(data, p, p + (count - 1) / 8 + 1));
+		} else if (data[p] == 0x87 && data[p+1] == 0x01) {
+			p += 3;
+			if (data[p] == 0x43 && data[p+1] == 0x00 && data[p+2] == 0x01 && data[p+3] == 0x00) { //复位确认
+				//87 01 00 43 00 01 00 00 00 00
+				packet = new ConfirmPacket();
+				packet.setType(Packet.CONFIRM_RESP);
+				if (data[p+4] != 0x00) {
+					((ConfirmPacket) packet).setState((byte) ResponseCode.ERROR_UNKNOW.ordinal());
+				} else {
+					((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
+				}
+			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x01 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理复位确认
+				//87 01 00 F0 01 01 00 00 00 00
+				packet = new ConfirmPacket();
+				packet.setType(Packet.CONFIRM_RESP);
+				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
+			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x07 && data[p+3] == 0x00) { //文件分块传输管理启动传输确认
+				//87 01 00 F0 01 07 00 00 00 00
+				packet = new ConfirmPacket();
+				packet.setType(Packet.CONFIRM_RESP);
+				if (data[p+4] != 0x00) {
+					((ConfirmPacket) packet).setState((byte) ResponseCode.ERROR_UNKNOW.ordinal());
+				} else {
+					((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
+				}
+			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00) { //文件分块传输管理写文件确认
+				//87 01 00 F0 01 08 00 00 00 00
+				//data[p+4] == 0x00
+				packet = new ConfirmPacket();
+				packet.setType(Packet.CONFIRM_RESP);
+				if (data[p+4] != 0x00) {
+					((ConfirmPacket) packet).setState((byte) ResponseCode.ERROR_UNKNOW.ordinal());
+				}
 			}
-		}
-		if (packet == null)
+		} else {
 			packet = new DLT698Packet();
+		}
+
 		packet.setTerminalAddr(getTerminalAddr(data));
 		packet.setMsta(msta);
-		((DLT698Packet) packet).setAfn(afn);
 		packet.setData(data);
 
 		return packet;

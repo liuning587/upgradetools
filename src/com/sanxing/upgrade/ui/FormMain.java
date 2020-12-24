@@ -853,7 +853,23 @@ public class FormMain extends Shell {
 
 		boolean allowLogin = this.btnAllowLoginFeps.getSelection();
 
-		if (type == ProtocolType.SB) {
+		if (type == ProtocolType.DLT698) {
+			this.textMSTA.setTextLimit(3);
+			this.lbMSTA.setText("(1-255)");
+
+			this.textPassword.setEditable(false);
+
+			this.textHeartbeatInterval.setEditable(false);//allowLogin);
+
+			this.btnDynamicPWD.setEnabled(false);
+
+			this.textUpgradePassword.setEditable(false);
+
+			this.btnSpecialChannel.setEnabled(true);
+
+			this.textFileVersion.setTextLimit(4);
+			this.lbFileVersion.setText("(4位字符，请根据目标文件版本准确填写) ");
+		} else if (type == ProtocolType.SB) {
 
 			this.textMSTA.setTextLimit(2);
 			this.lbMSTA.setText("(1-63) ");

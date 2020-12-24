@@ -578,99 +578,24 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 	// 创建查询接收位图请求报文
 	private DLT698Packet getCheckFileReqPacket(Task task) {
-		byte[] data = new byte[4];
-		int p = 0;
-
 		this.fileCheckInfo.nextQuerySeq();
-
-		data[p++] = 0;
-		data[p++] = (byte)0x80;//Byte.MIN_VALUE;
-
-		data[p++] = 0;
-		data[p++] = 0;
-
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 3, data,
-				PacketParser.calcCs(data));
+		return this.parser.packCheckFileRequest(this.currentTask.getTerminalAddr(), this.msta);
 	}
 
-	// 创建检查升级标识请求报文
+	// 创建检查升级结果报文
 	private DLT698Packet getCheckUpgradeReqPacket(Task task) {
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 4, new byte[0],
-				(byte) 0);
+		return this.parser.packCheckUpgradeRequest(this.currentTask.getTerminalAddr(), this.msta);
 	}
 
 	// 创建数据传输报文
 	private DLT698Packet getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
 		byte[] section = this.file.getSections()[index - 1];
-		byte[] data = new byte[4 + section.length];
-
-		int p = 0;
-
-		data[p++] = (byte) index;
-
-		if (allowQuery) {
-			data[p++] = (byte) (index >>> 8 | 0x80);
-		} else {
-			data[p++] = (byte) (index >>> 8);
-		}
-
-		data[p++] = (byte) section.length;
-		data[p++] = (byte) (section.length >>> 8);
-
-		System.arraycopy(section, 0, data, p, section.length);
-
-		byte cs = (byte) (this.parser.calcCs(data, 0, 4) + this.file.getCss()[index - 1]);
-
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 3, data, cs);
+		return this.parser.packUpgradeDataRequest(this.currentTask.getTerminalAddr(), this.msta, index, section, allowQuery);
 	}
 
 	// 创建启动升级报文
 	private DLT698Packet getUpgradeReqPacket(Task task) {
-		byte[] data = new byte[61];
-		int p = 0;
-
-		byte[] bytes = this.file.getName().getBytes();
-
-		System.arraycopy(bytes, 0, data, p, bytes.length);
-		p += 25;
-
-		data[p++] = (byte) this.file.getType().ordinal();
-
-		data[p++] = (byte) this.file.getSize();
-		data[p++] = (byte) (this.file.getSize() >>> 8);
-		data[p++] = (byte) (this.file.getSize() >>> 16);
-		data[p++] = (byte) (this.file.getSize() >>> 24);
-
-		data[p++] = (byte) this.file.getZipSize();
-		data[p++] = (byte) (this.file.getZipSize() >>> 8);
-		data[p++] = (byte) (this.file.getZipSize() >>> 16);
-		data[p++] = (byte) (this.file.getZipSize() >>> 24);
-
-		data[p++] = (byte) (this.file.getZip() ? 1 : 0);
-
-		int i;
-		for (i = 0; i < this.file.getVersion().length(); i++) {
-			data[p++] = (byte) this.file.getVersion().charAt(i);
-		}
-
-		bytes = SysUtils.hexToBytes(this.file.getZipMd5());
-		System.arraycopy(bytes, 0, data, p, 16);
-		p += 16;
-
-		data[p++] = (byte) (this.restartTerminal ? 1 : 0);
-
-		data[p++] = (byte) this.restartDelay;
-
-		i = (this.file.getSections()).length;
-		data[p++] = (byte) i;
-		data[p++] = (byte) (i >>> 8);
-
-		i = this.file.getSplitLength();
-		data[p++] = (byte) i;
-		data[p++] = (byte) (i >>> 8);
-
-		byte cs = PacketParser.calcCs(data);
-
-		return this.parser.packRequest(this.currentTask.getTerminalAddr(), this.msta, (byte) 0x13, 1, data, cs);
+		//this.file.getType()
+		return this.parser.packStartUpgradeRequest(this.currentTask.getTerminalAddr(), this.msta, this.file.getSize(), this.file.getSplitLength(), 0);
 	}
 }

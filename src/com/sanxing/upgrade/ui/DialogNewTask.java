@@ -284,9 +284,7 @@ public class DialogNewTask extends Dialog {
 				int radix = DialogNewTask.this.btnHex.getSelection() ? 16 : 10;
 				int count = 1;
 				String[] addrs = (String[]) null;
-				if (DialogNewTask.this.folder.getSelectionIndex() == 0)
-
-				{
+				if (DialogNewTask.this.folder.getSelectionIndex() == 0){
 					if (!DialogNewTask.this.textA.getText().trim().matches("(?i)[0-9a-f]{4}")) {
 						MessageDialog.openWarning(DialogNewTask.this.shell, "注意", "请正确输入地市区县码。");
 						DialogNewTask.this.textA.forceFocus();
@@ -349,13 +347,14 @@ public class DialogNewTask extends Dialog {
 
 						return;
 					}
+					int limit = DialogNewTask.this.textStart.getTextLimit();
 					if (strEnd.isEmpty()) {
 						addrs = new String[count];
 						if (DialogNewTask.this.btnDec.getSelection()) {
 							addrs[0] = String.valueOf(strA) + SysUtils.formatString(
-									Integer.toString(Integer.valueOf(strStart).intValue(), 16).toUpperCase(), '0', 4);
+									Integer.toString(Integer.valueOf(strStart).intValue(), 16).toUpperCase(), '0', limit);
 						} else {
-							addrs[0] = String.valueOf(strA) + SysUtils.formatString(strStart, '0', 4);
+							addrs[0] = String.valueOf(strA) + SysUtils.formatString(strStart, '0', limit);
 						}
 					} else {
 						addrs = new String[count];
@@ -363,10 +362,10 @@ public class DialogNewTask extends Dialog {
 						for (int j = 0; j < count; j++) {
 							if (DialogNewTask.this.btnDec.getSelection()) {
 								addrs[j] = String.valueOf(strA)
-										+ SysUtils.formatString(Integer.toString(start + j, 16).toUpperCase(), '0', 4);
+										+ SysUtils.formatString(Integer.toString(start + j, 16).toUpperCase(), '0', limit);
 							} else {
 								addrs[j] = String.valueOf(strA) + SysUtils
-										.formatString(Integer.toString(start + j, radix).toUpperCase(), '0', 4);
+										.formatString(Integer.toString(start + j, radix).toUpperCase(), '0', limit);
 							}
 						}
 					}
@@ -461,6 +460,11 @@ public class DialogNewTask extends Dialog {
 			this.lbStart.setText("1-5位");
 			this.textEnd.setTextLimit(5);
 			this.lbEnd.setText("1-5位");
+		} else if (this.btnHex.getSelection()) { // 698地址长度6字节
+			this.textStart.setTextLimit(8);
+			this.lbStart.setText("1-8位");
+			this.textEnd.setTextLimit(8);
+			this.lbEnd.setText("1-8位");
 		} else {
 			this.textStart.setTextLimit(4);
 			this.lbStart.setText("1-4位");

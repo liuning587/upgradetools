@@ -241,7 +241,7 @@ public class SBPacketParser extends PacketParser {
 			SBPacket validPacket = new SBPacket();
 			validPacket.setData(Arrays.copyOfRange(data, i, i + len + 13));
 
-			validPacket.setCtrl((byte) (data[8] & 0x3F));
+			validPacket.setCtrl((byte) (data[i+8] & 0x3F));
 
 			list.add(validPacket);
 

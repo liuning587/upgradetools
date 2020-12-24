@@ -103,6 +103,9 @@ public class UpgradeFile {
 		md.update(bytes);
 		this.zipMd5 = SysUtils.bytesToHex(md.digest());
 
+		if (this.splitLength == 0) {
+			throw new Exception("splitLength == 0");
+		}
 		int n = this.zipSize / this.splitLength;
 
 		int m = this.zipSize % this.splitLength;

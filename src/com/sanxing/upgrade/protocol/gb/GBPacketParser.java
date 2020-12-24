@@ -45,7 +45,7 @@ public class GBPacketParser extends PacketParser {
 
 		int p = 0;
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
@@ -53,7 +53,7 @@ public class GBPacketParser extends PacketParser {
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = 64;
 
@@ -78,7 +78,7 @@ public class GBPacketParser extends PacketParser {
 
 		wData[p++] = (byte) (calcCs(wData, 6, 12) + dataCs);
 
-		wData[p] = 22;
+		wData[p] = 0x16;
 
 		packet.setData(wData);
 
@@ -96,7 +96,7 @@ public class GBPacketParser extends PacketParser {
 
 		int p = 0;
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
@@ -104,7 +104,7 @@ public class GBPacketParser extends PacketParser {
 		wData[p++] = (byte) (usrLen << 2 | 0x1);
 		wData[p++] = (byte) (usrLen << 2 >> 8);
 
-		wData[p++] = 104;
+		wData[p++] = 0x68;
 
 		wData[p++] = 65;
 
@@ -129,7 +129,7 @@ public class GBPacketParser extends PacketParser {
 
 		wData[p++] = (byte) (calcCs(wData, 6, 12) + 0);
 
-		wData[p] = 22;
+		wData[p] = 0x16;
 
 		packet.setData(wData);
 
@@ -188,7 +188,7 @@ public class GBPacketParser extends PacketParser {
 				}
 			}
 
-			while (i < data.length && 104 != data[i]) {
+			while (i < data.length && 0x68 != data[i]) {
 				i++;
 			}
 
@@ -196,7 +196,7 @@ public class GBPacketParser extends PacketParser {
 				break;
 			}
 
-			if (104 != data[i + 5]) {
+			if (0x68 != data[i + 5]) {
 				i++;
 
 				continue;
@@ -210,7 +210,7 @@ public class GBPacketParser extends PacketParser {
 				continue;
 			}
 
-			if (22 != data[i + 8 + len - 1]) {
+			if (0x16 != data[i + 8 + len - 1]) {
 				i++;
 
 				break;
@@ -218,7 +218,7 @@ public class GBPacketParser extends PacketParser {
 
 			GBPacket validPacket = new GBPacket();
 
-			validPacket.setAfn(data[12]);
+			validPacket.setAfn(data[i + 12]);
 			validPacket.setData(Arrays.copyOfRange(data, i, i + len + 8));
 			list.add(validPacket);
 			result = true;
