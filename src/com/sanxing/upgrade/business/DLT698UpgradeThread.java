@@ -589,7 +589,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 	// 创建数据传输报文
 	private DLT698Packet getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
 		byte[] section = this.file.getSections()[index - 1];
-		return this.parser.packUpgradeDataRequest(this.currentTask.getTerminalAddr(), this.msta, index, section, allowQuery);
+		return this.parser.packUpgradeDataRequest(this.currentTask.getTerminalAddr(), this.msta, index - 1, section, allowQuery);
 	}
 
 	// 创建启动升级报文

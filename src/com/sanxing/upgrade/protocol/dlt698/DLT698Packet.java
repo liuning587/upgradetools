@@ -17,9 +17,9 @@ public class DLT698Packet extends Packet {
 
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		buffer.append("afn:");
-		buffer.append(SysUtils.byteToHex(this.afn));
-		buffer.append(" ");
+//		buffer.append("afn:");
+//		buffer.append(SysUtils.byteToHex(this.afn));
+//		buffer.append(" ");
 		buffer.append(super.toString());
 
 		return buffer.toString();

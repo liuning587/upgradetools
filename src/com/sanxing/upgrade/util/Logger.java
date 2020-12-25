@@ -80,6 +80,7 @@ public class Logger {
 			if (hex.length() == 1) {
 				hex = '0' + hex;
 			}
+			hex += ' ';
 			System.out.print(hex.toUpperCase());
 		}
 

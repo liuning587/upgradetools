@@ -62,11 +62,18 @@ public class FileSupplyInfo {
 				}
 			}
 		}
+		
+		if (buffer.toString().length() == 0) {
+			this.clear();
+			this.lostPs = new int[0];
+			return;
+		}
 		String[] strs = buffer.toString().split(" ");
 
 		this.lostPs = new int[strs.length];
-		for (int j = 0; j < strs.length; j++)
+		for (int j = 0; j < strs.length; j++) {
 			this.lostPs[j] = Integer.valueOf(strs[j]).intValue();
+		}
 		this.currentIndex = 0;
 	}
 }

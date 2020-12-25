@@ -2,6 +2,7 @@ package com.sanxing.upgrade.protocol.dlt698;
 
 import com.sanxing.upgrade.protocol.Packet;
 import com.sanxing.upgrade.protocol.PacketParser;
+import com.sanxing.upgrade.util.Logger;
 import com.sanxing.upgrade.util.SysUtils;
 import java.util.Arrays;
 import java.util.List;
@@ -208,7 +209,7 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
 		
-		wData[p++] = 0x05;
+		wData[p++] = 0x07;
 		wData[p++] = 0x01;
 		wData[p++] = (byte)(newSEQ() & 0x1f);
 		wData[p++] = (byte)0xF0;
@@ -226,10 +227,10 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = 0x00;
 
 		wData[p++] = 0x06; //文件大小
-		wData[p++] = 0x00;
-		wData[p++] = 0x00;
-		wData[p++] = 0x00;
-		wData[p++] = 0x00;
+		wData[p++] = (byte)(fileSize >> 24);
+		wData[p++] = (byte)(fileSize >> 16);
+		wData[p++] = (byte)(fileSize >> 8);
+		wData[p++] = (byte)(fileSize >> 0);
 
 		wData[p++] = 0x04;
 		wData[p++] = 0x03;
@@ -272,11 +273,12 @@ public class DLT698PacketParser extends PacketParser {
 		byte[] wData = new byte[34 + section.length]; //注意大报文长度不止34
 		int p = 0;
 		int crc;
+		int lenArea = wData.length - 2;
 		
 		wData[p++] = 0x68;
-		if (wData.length <= 0x3FFF) {
-			wData[p++] = (byte)(wData.length >> 0);
-			wData[p++] = (byte)(wData.length >> 8);
+		if (lenArea <= 0x3FFF) {
+			wData[p++] = (byte)(lenArea >> 0);
+			wData[p++] = (byte)(lenArea >> 8);
 		} else {
 			//todo:
 			wData[p++] = 0x34;
@@ -325,6 +327,8 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
 		
 		wData[p++] = 0x16;
+		
+//		Logger.printHexString(wData);
 		
 		if (allowQuery) {
 			//todo: 添加查询位图
@@ -568,15 +572,25 @@ public class DLT698PacketParser extends PacketParser {
 			}
 
 			len = isVaild(Arrays.copyOfRange(data, i, data.length));
-			System.out.printf("len is %d", len);
 			if (len <= 0) {
 				i++;
 				continue;
 			}
+
+			//681A00C30517031111111121F277 87010F F0010800 000000000FBA16
+			int p = 14; //apdu offset
+			if (data[p] == (byte)0x87 && data[p+1] == 0x01) {
+				p += 3;
+				if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理写文件确认
+					i += len;
+					continue; //fixme: 先不不理会
+				}
+			}
+				
 			
 			if ((data[i+3] & 0x80) == 0x80) { //DIR1: 终端-->主站
 				DLT698Packet validPacket = new DLT698Packet();
-				//validPacket.setAfn(data[i+12]); //todo: 
+				//validPacket.setAfn(data[i+12]); //todo: set afn
 				validPacket.setData(Arrays.copyOfRange(data, i, i + len));
 				list.add(validPacket);
 				result = true;
@@ -619,12 +633,15 @@ public class DLT698PacketParser extends PacketParser {
 	public Packet unpackReponse(Packet packet) {
 		byte[] data = packet.getData();
 		byte msta = data[11]; //CA
-		
+
 		int p = 14; //apdu offset
 		
-		if (data[p] == 0x85 && data[p+1] == 0x01) {
+//		Logger.printHexString(data);
+		
+		if (data[p] == (byte)0x85 && data[p+1] == 0x01) {
 			p += 3;
 			if (data[p] == 0x43 && data[p+1] == 0x00 && data[p+2] == 0x03 && data[p+3] == 0x00 && data[p+4] == 0x01) { //电气设备-版本信息
+				//System.out.printf("recv 电气设备-版本信息");
 				//01 结果:数据
 				//02 06 版本信息:6个成员
 				//0A 04 53 58 44 51 厂商代码:SXDQ
@@ -637,14 +654,14 @@ public class DLT698PacketParser extends PacketParser {
 				packet.setType(Packet.VERSION_RESP);
 				p += 4+11;
 				((QueryVersionRespPacket) packet).setVersion(String.valueOf(SysUtils.bytesToChr(Arrays.copyOfRange(data, p, p + 4))).trim());
-			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x04 && data[p+3] == 0x00 && data[p+4] == 0x01 && data[p+5] == 0x04) { //文件分块传输管理-传输块状态字
+			} else if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x04 && data[p+3] == 0x00 && data[p+4] == 0x01 && data[p+5] == 0x04) { //文件分块传输管理-传输块状态字
 				//01 结果:数据
 				//04 11 FF FF 80 传输块状态字:111111111111111110000000
 				p += 6;
 				packet = new CheckFileRespPacket();
 				packet.setType(Packet.CHECK_RCV_RESP);
 		
-				int count = (int)data[p++];
+				int count = (int)(data[p++]&0x0ff);
 				if ((count & 0x80) == 0x80) {
 			        switch (count & 0x7f) {
 			            case 1:
@@ -676,7 +693,7 @@ public class DLT698PacketParser extends PacketParser {
 					((CheckFileRespPacket) packet).setPs(Arrays.copyOfRange(data, p, p + (count + 7) / 8));
 				}
 			}
-		} else if (data[p] == 0x87 && data[p+1] == 0x01) {
+		} else if (data[p] == (byte)0x87 && data[p+1] == 0x01) {
 			p += 3;
 			if (data[p] == 0x43 && data[p+1] == 0x00 && data[p+2] == 0x01 && data[p+3] == 0x00) { //复位确认
 				//87 01 00 43 00 01 00 00 00 00
@@ -687,12 +704,12 @@ public class DLT698PacketParser extends PacketParser {
 				} else {
 					((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
 				}
-			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x01 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理复位确认
+			} else if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x01 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理复位确认
 				//87 01 00 F0 01 01 00 00 00 00
 				packet = new ConfirmPacket();
 				packet.setType(Packet.CONFIRM_RESP);
 				((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
-			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x07 && data[p+3] == 0x00) { //文件分块传输管理启动传输确认
+			} else if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x07 && data[p+3] == 0x00) { //文件分块传输管理启动传输确认
 				//87 01 00 F0 01 07 00 00 00 00
 				packet = new ConfirmPacket();
 				packet.setType(Packet.CONFIRM_RESP);
@@ -701,12 +718,13 @@ public class DLT698PacketParser extends PacketParser {
 				} else {
 					((ConfirmPacket) packet).setState((byte) ResponseCode.FINISH.ordinal());
 				}
-			} else if (data[p] == 0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00) { //文件分块传输管理写文件确认
+			} else if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00) { //文件分块传输管理写文件确认
 				//87 01 00 F0 01 08 00 00 00 00
 				//data[p+4] == 0x00
-				packet = new ConfirmPacket();
-				packet.setType(Packet.CONFIRM_RESP);
+				packet = new DLT698Packet();
+				//fixme: 先不不理会packet.setType(Packet.CONFIRM_RESP);
 				if (data[p+4] != 0x00) {
+					packet.setType(Packet.CONFIRM_RESP);
 					((ConfirmPacket) packet).setState((byte) ResponseCode.ERROR_UNKNOW.ordinal());
 				}
 			}
