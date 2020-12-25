@@ -35,6 +35,18 @@ public class DLT698PacketParser extends PacketParser {
 		}
 	}
 
+	public static void printHexString(byte[] b) {
+		for (int i = 0; i < b.length; i++) {
+			String hex = Integer.toHexString(b[i] & 0xFF);
+			if (hex.length() == 1) {
+				hex = '0' + hex;
+			}
+			System.out.print(hex.toUpperCase());
+		}
+
+		System.out.println();
+	}
+
 	public DLT698Packet packRequest(String terminalAddr, byte msta, byte afn, int fn, byte[] data, byte dataCs) {
 		DLT698Packet packet = new DLT698Packet();
 		packet.setTerminalAddr(terminalAddr);
@@ -365,6 +377,7 @@ public class DLT698PacketParser extends PacketParser {
 		crc = PacketParser.calcCrc16(wData, 1, p - 1);
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
+		printHexString(wData);
 		
 		wData[p++] = 0x05;
 		wData[p++] = 0x01;
@@ -374,12 +387,15 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = 0x03;
 		wData[p++] = 0x00;
 		wData[p++] = 0x00;
+		printHexString(wData);
 
 		crc = PacketParser.calcCrc16(wData, 1, p - 1);
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
-		
+
+		printHexString(wData);
 		wData[p++] = 0x16;
+		printHexString(wData);
 
 		packet.setData(wData);
 

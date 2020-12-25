@@ -1100,12 +1100,14 @@ public class FormMain extends Shell {
 				Event event = task.lastEvent();
 				switch (columnIndex) {
 				case 0:
+					if (task.getTerminalAddr().length() == 12) { //698
+						return task.getTerminalAddr();
+					}
 					addr1 = task.getTerminalAddr().substring(0, 4);
 					addr2 = task.getTerminalAddr().substring(4, 8);
 
 					if (FormMain.this.miDecAddr != null && FormMain.this.miDecAddr.getSelection()) {
-						addr2 = SysUtils.formatString(Integer.toString(Integer.valueOf(addr2, 16).intValue(), 10), '0',
-								5);
+						addr2 = SysUtils.formatString(Integer.toString(Integer.valueOf(addr2, 16).intValue(), 10), '0', 5);
 					}
 
 					if (FormMain.this.miSprAddr != null && FormMain.this.miSprAddr.getSelection()) {

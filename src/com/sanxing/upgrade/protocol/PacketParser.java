@@ -72,7 +72,7 @@ public abstract class PacketParser {
 		int fcs = 0xffff;
 
 		for (int i = 0; i < data.length; i++) {
-	        fcs = (fcs >> 8) ^ crc16_ccitt_table[(fcs ^ data[i]++) & 0xff];
+	        fcs = (fcs >> 8) ^ crc16_ccitt_table[(fcs ^ data[i]) & 0xff];
 		}
 	    fcs ^= 0xffff;
 	    //fcs = ((fcs & 0xff) << 8) | ((fcs & 0xff00) >> 8);
@@ -83,7 +83,7 @@ public abstract class PacketParser {
 		int fcs = 0xffff;
 
 		for (int i = pos; i < pos + length; i++) {
-	        fcs = (fcs >> 8) ^ crc16_ccitt_table[(fcs ^ data[i]++) & 0xff];
+	        fcs = (fcs >> 8) ^ crc16_ccitt_table[(fcs ^ data[i]) & 0xff];
 		}
 	    fcs ^= 0xffff;
 	    //fcs = ((fcs & 0xff) << 8) | ((fcs & 0xff00) >> 8);

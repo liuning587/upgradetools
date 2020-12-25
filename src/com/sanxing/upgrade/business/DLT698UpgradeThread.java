@@ -110,8 +110,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 	private void doQueryVersion() {
 		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "查询终端当前软件版本"));
 
-		this.fepConnector
-				.send((Packet) this.parser.packQueryVersionRequest(this.currentTask.getTerminalAddr(), this.msta));
+		this.fepConnector.send((Packet) this.parser.packQueryVersionRequest(this.currentTask.getTerminalAddr(), this.msta));
 	}
 
 	private void doStartUpgrade() {

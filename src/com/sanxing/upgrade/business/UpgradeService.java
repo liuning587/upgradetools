@@ -261,8 +261,7 @@ public class UpgradeService {
 
 	public PacketParser getPacketParser() {
 		if (parser == null) {
-			ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE"))
-					.intValue()];
+			ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE")).intValue()];
 			if (ProtocolType.DLT698 == type) {
 				parser = (PacketParser) new DLT698PacketParser();
 			} else if (ProtocolType.GB == type) {

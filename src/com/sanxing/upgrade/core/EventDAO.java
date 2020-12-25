@@ -14,8 +14,7 @@ public class EventDAO {
 	private static final String SQL_CLEAR = "DELETE FROM UPGRADETOOLS.EVENT";
 
 	public static void insert(String terminalAddr, Object[] events) throws SQLException {
-		PreparedStatement pstmt = DBManager
-				.getPrepStmt(SQL_INSERT);
+		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_INSERT);
 		try {
 			byte b;
 			int i;
