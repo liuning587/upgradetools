@@ -35,18 +35,6 @@ public class DLT698PacketParser extends PacketParser {
 		}
 	}
 
-	public static void printHexString(byte[] b) {
-		for (int i = 0; i < b.length; i++) {
-			String hex = Integer.toHexString(b[i] & 0xFF);
-			if (hex.length() == 1) {
-				hex = '0' + hex;
-			}
-			System.out.print(hex.toUpperCase());
-		}
-
-		System.out.println();
-	}
-
 	public DLT698Packet packRequest(String terminalAddr, byte msta, byte afn, int fn, byte[] data, byte dataCs) {
 		DLT698Packet packet = new DLT698Packet();
 		packet.setTerminalAddr(terminalAddr);
@@ -377,7 +365,6 @@ public class DLT698PacketParser extends PacketParser {
 		crc = PacketParser.calcCrc16(wData, 1, p - 1);
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
-		printHexString(wData);
 		
 		wData[p++] = 0x05;
 		wData[p++] = 0x01;
@@ -387,15 +374,12 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = 0x03;
 		wData[p++] = 0x00;
 		wData[p++] = 0x00;
-		printHexString(wData);
 
 		crc = PacketParser.calcCrc16(wData, 1, p - 1);
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
 
-		printHexString(wData);
 		wData[p++] = 0x16;
-		printHexString(wData);
 
 		packet.setData(wData);
 
@@ -484,7 +468,7 @@ public class DLT698PacketParser extends PacketParser {
 		crc = PacketParser.calcCrc16(wData, 1, p - 1);
 		wData[p++] = (byte) ((crc >> 0) & 0xff);
 		wData[p++] = (byte) ((crc >> 8) & 0xff);
-		
+
 		wData[p++] = 0x07;
 		wData[p++] = 0x01;
 		wData[p++] = (byte) (newSEQ() & 0x1f);
@@ -523,12 +507,12 @@ public class DLT698PacketParser extends PacketParser {
 			return 0;
 		}
 	
-		fLen = ((int)(buf[2]&0x3f) << 8) + (int)buf[1];
+		fLen = ((int)(buf[2]&0x3f) << 8) + (buf[1]&0x0FF);
 		if ((buf[2]&0x40) != 0) {
 			fLen *= 1024;
 		}
 		if ((fLen > Pmax698PtlFrameLen-2) || (fLen < 7)) {
-			return -1;
+			return -2;
 		}
 
 		if (buf.length < 6) {
@@ -543,8 +527,8 @@ public class DLT698PacketParser extends PacketParser {
 	
 		//check hcs
 		cs = PacketParser.calcCrc16(buf, 1, hlen-1);
-		if (cs != (((int)(buf[hlen+1]) << 8) + (int)(buf[hlen]))) {
-			return -1;
+		if (cs != (((buf[hlen+1]&0x0FF) << 8) + (buf[hlen]&0x0FF))) {
+			return -3;
 		}
 	
 		if (buf.length < (fLen+1)) {
@@ -553,15 +537,15 @@ public class DLT698PacketParser extends PacketParser {
 	
 		//check fcs
 		cs = PacketParser.calcCrc16(buf, 1, fLen-2);
-		if (cs != (((int)(buf[fLen]) << 8) + (int)(buf[fLen-1]))) {
-			return -1;
+		if (cs != (((buf[fLen]&0x0FF) << 8) + (buf[fLen-1]&0x0FF))) {
+			return -4;
 		}
 	
 		if (buf.length < (fLen+2)) {
 			return 0;
 		}
 		if (0x16 != buf[fLen+1]) {
-			return -1;
+			return -5;
 		}
 	
 		return fLen + 2;
@@ -584,6 +568,7 @@ public class DLT698PacketParser extends PacketParser {
 			}
 
 			len = isVaild(Arrays.copyOfRange(data, i, data.length));
+			System.out.printf("len is %d", len);
 			if (len <= 0) {
 				i++;
 				continue;
@@ -663,18 +648,18 @@ public class DLT698PacketParser extends PacketParser {
 				if ((count & 0x80) == 0x80) {
 			        switch (count & 0x7f) {
 			            case 1:
-			            	count = data[p++];
+			            	count = (data[p++]&0x0FF);
 			                break;
 			            case 2:
-			            	count = (data[p] << 8) | data[p + 1];
+			            	count = ((data[p]&0x0FF) << 8) | (data[p + 1]&0x0FF);
 			                p += 2;
 			                break;
 			            case 3:
-			            	count = (data[p] << 16) | (data[p + 1] << 8) | data[p + 2];
+			            	count = ((data[p]&0x0FF) << 16) | ((data[p + 1]&0x0FF) << 8) | (data[p + 2]&0x0FF);
 			                p += 3;
 			                break;
 			            case 4:
-			            	count = (data[p] << 24) | (data[p + 1] << 16) | (data[p + 2] << 8) | data[p + 3];
+			            	count = ((data[p]&0x0FF) << 24) | ((data[p + 1]&0x0FF) << 16) | ((data[p + 2]&0x0FF) << 8) | (data[p + 3]&0x0FF);
 			                p += 4;
 			                break;
 			            default:

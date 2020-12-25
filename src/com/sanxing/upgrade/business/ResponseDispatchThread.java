@@ -40,7 +40,7 @@ class ResponseDispatchThread extends Thread {
 			if (packet == null) {
 				continue;
 			}
-
+			
 			if (!this.parser.filterPacket(packet, this.list)) {
 				Logger.debug("收到非法报文：" + SysUtils.bytesToHex(packet.getData()));
 
