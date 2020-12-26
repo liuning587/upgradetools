@@ -367,6 +367,7 @@ public class DLT698PacketParser extends PacketParser {
 		
 		if (allowQuery) {
 			//添加查询位图
+			int start = p;
 			wData[p++] = 0x68;
 			wData[p++] = 0x17;
 			wData[p++] = 0x00;
@@ -380,7 +381,7 @@ public class DLT698PacketParser extends PacketParser {
 			wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
 			wData[p++] = (byte)msta;
 
-			crc = PacketParser.calcCrc16(wData, 1, p - 1);
+			crc = PacketParser.calcCrc16(wData, start + 1, p - start - 1);
 			wData[p++] = (byte) ((crc >> 0) & 0xff);
 			wData[p++] = (byte) ((crc >> 8) & 0xff);
 			
@@ -393,7 +394,7 @@ public class DLT698PacketParser extends PacketParser {
 			wData[p++] = 0x00;
 			wData[p++] = 0x00;
 
-			crc = PacketParser.calcCrc16(wData, 1, p - 1);
+			crc = PacketParser.calcCrc16(wData, start + 1, p - start - 1);
 			wData[p++] = (byte) ((crc >> 0) & 0xff);
 			wData[p++] = (byte) ((crc >> 8) & 0xff);
 			
