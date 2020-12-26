@@ -293,6 +293,10 @@ public class SBPacketParser extends PacketParser {
 		return terminalAddr.toString();
 	}
 
+	public boolean isIgnore(Packet packet) {
+		return false;
+	}
+
 	public boolean isFepResp(Packet packet) {
 		String terminalAddr = getTerminalAddr(packet);
 

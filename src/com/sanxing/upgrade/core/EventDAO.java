@@ -16,17 +16,13 @@ public class EventDAO {
 	public static void insert(String terminalAddr, Object[] events) throws SQLException {
 		PreparedStatement pstmt = DBManager.getPrepStmt(SQL_INSERT);
 		try {
-			byte b;
-			int i;
-			Object[] arrayOfObject;
-			for (i = (arrayOfObject = events).length, b = 0; b < i;) {
-				Object event = arrayOfObject[b];
+			for (int i = 0; i < events.length; i++) {
+				Object event = events[i];
 				pstmt.setString(1, terminalAddr);
 				pstmt.setTime(2, new Time(((Event) event).time().getTime()));
 				pstmt.setInt(3, ((Event) event).type().ordinal());
 				pstmt.setString(4, ((Event) event).toString());
 				pstmt.addBatch();
-				b++;
 			}
 
 			pstmt.executeBatch();

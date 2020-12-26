@@ -48,6 +48,10 @@ class ResponseDispatchThread extends Thread {
 			}
 			for (Packet vPacket : this.list) {
 				Event event;
+				if (this.parser.isIgnore(vPacket)) {
+					continue;
+				}
+				
 				if (this.parser.isFepResp(vPacket)) {
 
 					Event event1 = Event.createPending(EventType.RECEIVE_RESPONSE, "收到前置机应答");

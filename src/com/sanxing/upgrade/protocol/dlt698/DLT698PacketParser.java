@@ -270,7 +270,14 @@ public class DLT698PacketParser extends PacketParser {
 		packet.setTerminalAddr(terminalAddr);
 		packet.setMsta(msta);
 		
-		byte[] wData = new byte[34 + section.length]; //注意大报文长度不止34
+		byte[] wData;
+		
+		if (allowQuery) {
+			wData = new byte[34 + section.length + 25];
+		} else {
+			wData = new byte[34 + section.length]; //注意大报文长度不止34
+		}
+		
 		int p = 0;
 		int crc;
 		int lenArea = wData.length - 2;
@@ -328,12 +335,42 @@ public class DLT698PacketParser extends PacketParser {
 		
 		wData[p++] = 0x16;
 		
-//		Logger.printHexString(wData);
-		
 		if (allowQuery) {
-			//todo: 添加查询位图
+			//添加查询位图
+			wData[p++] = 0x68;
+			wData[p++] = 0x17;
+			wData[p++] = 0x00;
+			wData[p++] = 0x43; //ctrl
+			wData[p++] = 0x05;
+			wData[p++] = Integer.valueOf(terminalAddr.substring(10, 12), 16).byteValue();
+			wData[p++] = Integer.valueOf(terminalAddr.substring(8, 10), 16).byteValue();
+			wData[p++] = Integer.valueOf(terminalAddr.substring(6, 8), 16).byteValue();
+			wData[p++] = Integer.valueOf(terminalAddr.substring(4, 6), 16).byteValue();
+			wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
+			wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
+			wData[p++] = (byte)msta;
+			
+			crc = PacketParser.calcCrc16(wData, 1, p - 1);
+			wData[p++] = (byte) ((crc >> 0) & 0xff);
+			wData[p++] = (byte) ((crc >> 8) & 0xff);
+			
+			wData[p++] = 0x05;
+			wData[p++] = 0x01;
+			wData[p++] = (byte)(newSEQ() & 0x1f);
+			wData[p++] = (byte)0xF0;
+			wData[p++] = 0x01;
+			wData[p++] = 0x03;
+			wData[p++] = 0x00;
+			wData[p++] = 0x00;
+			
+			crc = PacketParser.calcCrc16(wData, 1, p - 1);
+			wData[p++] = (byte) ((crc >> 0) & 0xff);
+			wData[p++] = (byte) ((crc >> 8) & 0xff);
+			
+			wData[p++] = 0x16;
 		}
-		
+
+//		Logger.printHexString(wData);
 		packet.setData(wData);
 		
 		return packet;
@@ -576,17 +613,6 @@ public class DLT698PacketParser extends PacketParser {
 				i++;
 				continue;
 			}
-
-			//681A00C30517031111111121F277 87010F F0010800 000000000FBA16
-			int p = 14; //apdu offset
-			if (data[p] == (byte)0x87 && data[p+1] == 0x01) {
-				p += 3;
-				if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理写文件确认
-					i += len;
-					continue; //fixme: 先不不理会
-				}
-			}
-				
 			
 			if ((data[i+3] & 0x80) == 0x80) { //DIR1: 终端-->主站
 				DLT698Packet validPacket = new DLT698Packet();
@@ -615,6 +641,19 @@ public class DLT698PacketParser extends PacketParser {
 	//从报文中提取终端地址字符串
 	public String getTerminalAddr(Packet packet) {
 		return getTerminalAddr(packet.getData());
+	}
+
+	public boolean isIgnore(Packet packet) {
+		byte[] data = packet.getData();
+		//681A00C30517031111111121F277 87010F F0010800 000000000FBA16
+		int p = 14; //apdu offset
+		if (data[p] == (byte)0x87 && data[p+1] == 0x01) {
+			p += 3;
+			if (data[p] == (byte)0xF0 && data[p+1] == 0x01 && data[p+2] == 0x08 && data[p+3] == 0x00 && data[p+4] == 0x00) { //文件分块传输管理写文件确认
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isFepResp(Packet packet) {

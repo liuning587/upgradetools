@@ -5,6 +5,8 @@ import java.util.List;
 public abstract class PacketParser {
 	public abstract boolean filterPacket(Packet paramPacket, List<Packet> paramList);
 
+	public abstract boolean isIgnore(Packet paramPacket);
+
 	public abstract boolean isFepResp(Packet paramPacket);
 
 	public abstract String getTerminalAddr(Packet paramPacket);

@@ -239,6 +239,10 @@ public class GBPacketParser extends PacketParser {
 		return buffer.toString();
 	}
 
+	public boolean isIgnore(Packet packet) {
+		return false;
+	}
+
 	public boolean isFepResp(Packet packet) {
 		if (isATCTResp(packet.getData()))
 			return false;
