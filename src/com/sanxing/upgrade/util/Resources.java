@@ -113,7 +113,7 @@ public class Resources {
 
 	public static final String PROP_ZIP = "PROP_ZIP";
 
-	public static final String BIG_PACKET = "BIG_PACKET";
+	public static final String PROP_BIG_PACKET = "PROP_BIG_PACKET";
 
 	public static final String PROP_RESTART_TERMINAL = "PROP_RESTART_TERMINAL";
 

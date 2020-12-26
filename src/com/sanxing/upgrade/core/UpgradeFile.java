@@ -19,15 +19,17 @@ public class UpgradeFile {
 	private UpgradeFileType type;
 	private int splitLength;
 	private boolean zip;
+	private boolean bigPacket;
 	private byte[][] sections;
 	private byte[] css;
 	private String sign;
 
-	public UpgradeFile(ProtocolType protocolType, String fullName, int splitLength, boolean zip) {
+	public UpgradeFile(ProtocolType protocolType, String fullName, int splitLength, boolean zip, boolean bigPacket) {
 		this.protocolType = protocolType;
 		this.fullName = fullName;
 		this.splitLength = splitLength;
 		this.zip = zip;
+		this.bigPacket = bigPacket;
 		this.sign = "";
 	}
 
@@ -89,6 +91,19 @@ public class UpgradeFile {
 		}
 
 		this.zipSize = (int) fileDest.length();
+		
+		if (this.bigPacket) {
+			int tmp = 256;
+			int bsize = 2048;
+			while (tmp >= 16) {
+				bsize = tmp*1024 - 33;
+				if ((this.zipSize % bsize) < (16*1024 - 33)) {
+					break;
+				}
+				tmp--;
+			}
+			this.splitLength = bsize;
+		}
 
 		InputStream fis = new FileInputStream(fileDest);
 		byte[] bytes = new byte[this.zipSize];

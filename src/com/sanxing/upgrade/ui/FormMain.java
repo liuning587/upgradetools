@@ -157,6 +157,8 @@ public class FormMain extends Shell {
 
 	private Button btnZip;
 
+	private Button btnBigPacket;
+
 	private Button btnRestartTerminal;
 
 	private Text textRestartTerminalDelay;
@@ -309,10 +311,7 @@ public class FormMain extends Shell {
 		}
 		i = Integer.valueOf(this.textSplitLength.getText().trim()).intValue();
 		if (ProtocolType.DLT698 == type) {
-			if (200 > i || 15360 < i) {
-				this.textSplitLength.forceFocus();
-				throw new Exception("请正确输入分包长度。");
-			}
+			
 		} else {
 			if (200 > i || 2048 < i) {
 				this.textSplitLength.forceFocus();
@@ -391,6 +390,8 @@ public class FormMain extends Shell {
 		Resources.setProperty("PROP_SPLIT_LENGTH", this.textSplitLength.getText().trim());
 
 		Resources.setProperty("PROP_ZIP", String.valueOf(this.btnZip.getSelection()));
+		
+		Resources.setProperty("PROP_BIG_PACKET", String.valueOf(this.btnBigPacket.getSelection()));
 
 		Resources.setProperty("PROP_RESTART_TERMINAL", String.valueOf(this.btnRestartTerminal.getSelection()));
 
@@ -810,11 +811,20 @@ public class FormMain extends Shell {
 		this.textSplitLength = new Text(composite, 2048);
 		this.textSplitLength.setLayoutData(new GridData(768));
 		this.textSplitLength.setText(Resources.getProperty("PROP_SPLIT_LENGTH"));
-		this.textSplitLength.setTextLimit(5);
+		this.textSplitLength.setTextLimit(4);
 
 		label = new Label(composite, 0);
 		label.setLayoutData(new GridData(32));
 		label.setText("字节(200-2048)");
+		
+		label = new Label(composite, 0);
+		label.setLayoutData(new GridData(128));
+		this.btnBigPacket = new Button(composite, 32);
+		this.btnBigPacket.setText("支持698超大报文传输");
+		gridData = new GridData(32);
+		gridData.horizontalSpan = 2;
+		this.btnBigPacket.setLayoutData(gridData);
+		this.btnBigPacket.setSelection(Boolean.valueOf(Resources.getProperty("PROP_BIG_PACKET")).booleanValue());
 
 		label = new Label(composite, 258);
 		gridData = new GridData(800);
@@ -877,6 +887,7 @@ public class FormMain extends Shell {
 
 			this.textFileVersion.setTextLimit(4);
 			this.lbFileVersion.setText("(4位字符，请根据目标文件版本准确填写) ");
+			this.btnBigPacket.setEnabled(true);
 		} else if (type == ProtocolType.SB) {
 
 			this.textMSTA.setTextLimit(2);
@@ -893,6 +904,7 @@ public class FormMain extends Shell {
 
 			this.textFileVersion.setTextLimit(16);
 			this.lbFileVersion.setText("(16位数字，请根据文件内部版本正确填写)");
+			this.btnBigPacket.setEnabled(false);
 		} else {
 
 			this.textMSTA.setTextLimit(3);
@@ -910,6 +922,7 @@ public class FormMain extends Shell {
 
 			this.textFileVersion.setTextLimit(4);
 			this.lbFileVersion.setText("(4位字符，请根据目标文件版本准确填写) ");
+			this.btnBigPacket.setEnabled(false);
 		}
 
 		this.btnSkipNeedlessUpgrade.setEnabled(this.btnAllowQueryVersion.getSelection());

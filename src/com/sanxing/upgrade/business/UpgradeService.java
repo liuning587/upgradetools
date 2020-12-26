@@ -104,15 +104,18 @@ public class UpgradeService {
 			throw new Exception("未设置前置机地址");
 		}
 
-		ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE"))
-				.intValue()];
-
+		boolean bigPacket = false;
+		ProtocolType type = ProtocolType.values()[Integer.valueOf(Resources.getProperty("PROP_PROTOCOL_TYPE")).intValue()];
+		
+		if ((type == ProtocolType.DLT698) && Boolean.valueOf(Resources.getProperty("PROP_BIG_PACKET")).booleanValue()) {
+			bigPacket = true;
+		}
+		
 		this.upgradeFile = new UpgradeFile(type, Resources.getProperty("PROP_FILENAME"),
 				Integer.valueOf(Resources.getProperty("PROP_SPLIT_LENGTH")).intValue(),
-				Boolean.valueOf(Resources.getProperty("PROP_ZIP")).booleanValue());
+				Boolean.valueOf(Resources.getProperty("PROP_ZIP")).booleanValue(), bigPacket);
 
-		this.upgradeFile
-				.setType(UpgradeFileType.values()[Integer.valueOf(Resources.getProperty("PROP_FILE_TYPE")).intValue()]);
+		this.upgradeFile.setType(UpgradeFileType.values()[Integer.valueOf(Resources.getProperty("PROP_FILE_TYPE")).intValue()]);
 
 		str = Resources.getProperty("PROP_FILE_VERSION");
 		this.upgradeFile.setVersion(str);

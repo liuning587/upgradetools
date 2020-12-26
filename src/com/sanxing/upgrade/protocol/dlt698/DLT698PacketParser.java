@@ -188,12 +188,22 @@ public class DLT698PacketParser extends PacketParser {
 		packet.setTerminalAddr(terminalAddr);
 		packet.setMsta(msta);
 		
-		byte[] wData = new byte[54];
+		byte[] wData;
+		
+		if (blockSize > 16*1024) {
+			wData = new byte[54+2];
+		} else {
+			wData = new byte[54];
+		}
 		int p = 0;
 		int crc;
 		
 		wData[p++] = 0x68;
-		wData[p++] = 0x34;
+		if (blockSize > 16*1024) {
+			wData[p++] = 0x36;
+		} else {
+			wData[p++] = 0x34;
+		}
 		wData[p++] = 0x00;
 		wData[p++] = 0x43; //ctrl
 		wData[p++] = 0x05;
@@ -240,9 +250,17 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = 0x16;
 		wData[p++] = (byte)fileType; //终端文件
 
-		wData[p++] = 0x12; //传输块大小
-		wData[p++] = (byte)(blockSize >> 8);
-		wData[p++] = (byte)(blockSize >> 0);
+		if (blockSize > 16*1024) {
+			wData[p++] = 0x06; //传输块大小
+			wData[p++] = (byte)(blockSize >> 24);
+			wData[p++] = (byte)(blockSize >> 16);
+			wData[p++] = (byte)(blockSize >> 8);
+			wData[p++] = (byte)(blockSize >> 0);
+		} else {
+			wData[p++] = 0x12; //传输块大小
+			wData[p++] = (byte)(blockSize >> 8);
+			wData[p++] = (byte)(blockSize >> 0);
+		}
 
 		wData[p++] = 0x02; //校验2个成员
 		wData[p++] = 0x02;
@@ -271,25 +289,29 @@ public class DLT698PacketParser extends PacketParser {
 		packet.setMsta(msta);
 		
 		byte[] wData;
-		
+		int wLen = 34 + section.length;
 		if (allowQuery) {
-			wData = new byte[34 + section.length + 25];
-		} else {
-			wData = new byte[34 + section.length]; //注意大报文长度不止34
+			wLen += 25;
 		}
+		if (section.length > 15 * 1024) {
+			wLen += 1;
+		}
+		wData = new byte[wLen]; 
 		
 		int p = 0;
 		int crc;
 		int lenArea = wData.length - 2;
-		
+		if (allowQuery) {
+			lenArea -= 25;
+		}
 		wData[p++] = 0x68;
 		if (lenArea <= 0x3FFF) {
 			wData[p++] = (byte)(lenArea >> 0);
 			wData[p++] = (byte)(lenArea >> 8);
 		} else {
-			//todo:
-			wData[p++] = 0x34;
-			wData[p++] = 0x00;
+			lenArea /= 1024;
+			wData[p++] = (byte)(lenArea >> 0);
+			wData[p++] = (byte) ((byte)(lenArea >> 8) | (byte)0x40);
 		}
 		wData[p++] = 0x43; //ctrl
 		wData[p++] = 0x05;
@@ -320,9 +342,17 @@ public class DLT698PacketParser extends PacketParser {
 		wData[p++] = (byte)(index >> 0);
 
 		wData[p++] = 0x09;
-		wData[p++] = (byte)0x82; //todo: 大包升级需要83
-		wData[p++] = (byte)(section.length >> 8);
-		wData[p++] = (byte)(section.length >> 0);
+
+		if (section.length > 15 * 1024) {
+			wData[p++] = (byte)0x83; 
+			wData[p++] = (byte)(section.length >> 16);
+			wData[p++] = (byte)(section.length >> 8);
+			wData[p++] = (byte)(section.length >> 0);
+		} else {
+			wData[p++] = (byte)0x82; 
+			wData[p++] = (byte)(section.length >> 8);
+			wData[p++] = (byte)(section.length >> 0);
+		}
 
 		System.arraycopy(section, 0, wData, p, section.length);
 		p += section.length;
