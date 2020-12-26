@@ -113,6 +113,8 @@ public class Resources {
 
 	public static final String PROP_ZIP = "PROP_ZIP";
 
+	public static final String BIG_PACKET = "BIG_PACKET";
+
 	public static final String PROP_RESTART_TERMINAL = "PROP_RESTART_TERMINAL";
 
 	public static final String PROP_RESTART_TERMINAL_DELAY = "PROP_RESTART_TERMINAL_DELAY";

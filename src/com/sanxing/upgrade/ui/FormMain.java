@@ -308,10 +308,18 @@ public class FormMain extends Shell {
 			throw new Exception("请正确输入分包长度。");
 		}
 		i = Integer.valueOf(this.textSplitLength.getText().trim()).intValue();
-		if (200 > i || 2048 < i) {
-			this.textSplitLength.forceFocus();
-			throw new Exception("请正确输入分包长度。");
+		if (ProtocolType.DLT698 == type) {
+			if (200 > i || 15360 < i) {
+				this.textSplitLength.forceFocus();
+				throw new Exception("请正确输入分包长度。");
+			}
+		} else {
+			if (200 > i || 2048 < i) {
+				this.textSplitLength.forceFocus();
+				throw new Exception("请正确输入分包长度。");
+			}
 		}
+			
 
 		if (this.btnRestartTerminal.getSelection()) {
 			if (!SysUtils.isInteger(this.textRestartTerminalDelay.getText().trim())) {
@@ -802,7 +810,7 @@ public class FormMain extends Shell {
 		this.textSplitLength = new Text(composite, 2048);
 		this.textSplitLength.setLayoutData(new GridData(768));
 		this.textSplitLength.setText(Resources.getProperty("PROP_SPLIT_LENGTH"));
-		this.textSplitLength.setTextLimit(4);
+		this.textSplitLength.setTextLimit(5);
 
 		label = new Label(composite, 0);
 		label.setLayoutData(new GridData(32));

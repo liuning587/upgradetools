@@ -349,7 +349,7 @@ public class DLT698PacketParser extends PacketParser {
 			wData[p++] = Integer.valueOf(terminalAddr.substring(2, 4), 16).byteValue();
 			wData[p++] = Integer.valueOf(terminalAddr.substring(0, 2), 16).byteValue();
 			wData[p++] = (byte)msta;
-			
+
 			crc = PacketParser.calcCrc16(wData, 1, p - 1);
 			wData[p++] = (byte) ((crc >> 0) & 0xff);
 			wData[p++] = (byte) ((crc >> 8) & 0xff);
@@ -359,10 +359,10 @@ public class DLT698PacketParser extends PacketParser {
 			wData[p++] = (byte)(newSEQ() & 0x1f);
 			wData[p++] = (byte)0xF0;
 			wData[p++] = 0x01;
-			wData[p++] = 0x03;
+			wData[p++] = 0x04;
 			wData[p++] = 0x00;
 			wData[p++] = 0x00;
-			
+
 			crc = PacketParser.calcCrc16(wData, 1, p - 1);
 			wData[p++] = (byte) ((crc >> 0) & 0xff);
 			wData[p++] = (byte) ((crc >> 8) & 0xff);
