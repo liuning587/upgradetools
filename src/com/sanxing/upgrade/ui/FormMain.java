@@ -825,6 +825,11 @@ public class FormMain extends Shell {
 		gridData.horizontalSpan = 2;
 		this.btnBigPacket.setLayoutData(gridData);
 		this.btnBigPacket.setSelection(Boolean.valueOf(Resources.getProperty("PROP_BIG_PACKET")).booleanValue());
+		this.btnBigPacket.addSelectionListener((SelectionListener) new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				FormMain.this.changeUIState();
+			}
+		});
 
 		label = new Label(composite, 258);
 		gridData = new GridData(800);
@@ -871,6 +876,7 @@ public class FormMain extends Shell {
 
 		boolean allowLogin = this.btnAllowLoginFeps.getSelection();
 
+		this.textSplitLength.setEditable(true);
 		if (type == ProtocolType.DLT698) {
 			this.textMSTA.setTextLimit(3);
 			this.lbMSTA.setText("(1-255)");
@@ -888,6 +894,11 @@ public class FormMain extends Shell {
 			this.textFileVersion.setTextLimit(4);
 			this.lbFileVersion.setText("(4位字符，请根据目标文件版本准确填写) ");
 			this.btnBigPacket.setEnabled(true);
+
+			if (this.btnBigPacket.getSelection()) {
+				this.textSplitLength.setEditable(false);
+				//todo: 设置分帧长度
+			}
 		} else if (type == ProtocolType.SB) {
 
 			this.textMSTA.setTextLimit(2);
