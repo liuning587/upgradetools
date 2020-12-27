@@ -19,7 +19,7 @@ class GBUpgradeThread extends UpgradeThread {
 	private float lastSendRate;
 
 	private boolean autoCanceling;
-	private boolean ATCTLinked;
+//	private boolean ATCTLinked;
 	private boolean firstTask = true;
 
 	public GBUpgradeThread(FepConnector owner) {
@@ -158,11 +158,11 @@ class GBUpgradeThread extends UpgradeThread {
 		this.service.taskChanged(this.currentTask);
 	}
 
-	private void doATCT() {
-		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "发送ATCT请求"));
-
-		this.fepConnector.send(this.parser.packATCTRequest(this.msta, this.currentTask.getTerminalAddr()));
-	}
+//	private void doATCT() {
+//		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "发送ATCT请求"));
+//
+//		this.fepConnector.send(this.parser.packATCTRequest(this.msta, this.currentTask.getTerminalAddr()));
+//	}
 
 	void handleEvent(Event event) {
 		event.done();

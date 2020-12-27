@@ -2,7 +2,7 @@ package com.sanxing.upgrade.protocol.dlt698;
 
 import com.sanxing.upgrade.protocol.Packet;
 import com.sanxing.upgrade.protocol.PacketParser;
-import com.sanxing.upgrade.util.Logger;
+//import com.sanxing.upgrade.util.Logger;
 import com.sanxing.upgrade.util.SysUtils;
 import java.util.Arrays;
 import java.util.List;

@@ -3,7 +3,7 @@ package com.sanxing.upgrade.ui;
 import com.sanxing.upgrade.core.Event;
 import com.sanxing.upgrade.core.EventDAO;
 import com.sanxing.upgrade.core.EventList;
-import com.sanxing.upgrade.core.EventType;
+//import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.Task;
 import com.sanxing.upgrade.util.Resources;
 import com.sanxing.upgrade.util.SysUtils;

@@ -1,7 +1,7 @@
 package com.sanxing.upgrade.ui;
 
 import com.sanxing.upgrade.business.UpgradeService;
-import com.sanxing.upgrade.core.Event;
+//import com.sanxing.upgrade.core.Event;
 import com.sanxing.upgrade.core.ITaskChangedListener;
 import com.sanxing.upgrade.core.ProtocolType;
 import com.sanxing.upgrade.core.Queue;
@@ -1129,7 +1129,7 @@ public class FormMain extends Shell {
 			public String getColumnText(Object element, int columnIndex) {
 				String addr1, addr2;
 				Task task = (Task) element;
-				Event event = task.lastEvent();
+//				Event event = task.lastEvent();
 				switch (columnIndex) {
 				case 0:
 					if (task.getTerminalAddr().length() == 12) { //698
@@ -1191,7 +1191,7 @@ public class FormMain extends Shell {
 				if (FormMain.this.tvTask.getTable().isDisposed())
 					return;
 				while (true) {
-					Task task = (Task) FormMain.this.refreshQueue.take();
+					Task task = FormMain.this.refreshQueue.take();
 					if (task == null) {
 						return;
 					}

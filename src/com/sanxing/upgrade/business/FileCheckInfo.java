@@ -59,11 +59,11 @@ public class FileCheckInfo {
 	}
 
 	public boolean isStopReceive() {
-		return (this.steadyTime >= 2);
+		return (this.steadyTime >= RECEIVE_IS_STOP);
 	}
 
 	public boolean isOverTiems() {
-		return !(this.querySeq <= 9 && this.querySeq >= 0);
+		return !(this.querySeq < MAX_CHECK_TIMES && this.querySeq >= 0);
 	}
 
 	public byte nextQuerySeq() {

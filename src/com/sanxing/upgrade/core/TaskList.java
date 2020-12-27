@@ -8,7 +8,7 @@ import java.util.List;
 
 public class TaskList implements Serializable {
 	private static final long serialVersionUID = -2917587944199081401L;
-	private static final String filename = "TaskList.zer";
+//	private static final String filename = "TaskList.zer";
 	private LinkedHashMap<String, Task> list = new LinkedHashMap<String, Task>();
 
 	public boolean isExists(String terminalAddr) {

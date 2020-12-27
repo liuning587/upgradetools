@@ -91,15 +91,15 @@ public class CSashForm extends Composite {
 						formData.width -= e.x;
 					}
 
-					if (20 > formData.width) {
-						formData.width = 20;
+					if (DRAG_MINIMUM > formData.width) {
+						formData.width = DRAG_MINIMUM;
 					}
 
 					if (formData.width + leftControl.getBorderWidth() * 2 + (CSashForm.this.sash.getBounds()).width
-							+ rightControl.getBorderWidth() * 2 + 20 > (CSashForm.this.getClientArea()).width) {
+							+ rightControl.getBorderWidth() * 2 + DRAG_MINIMUM > (CSashForm.this.getClientArea()).width) {
 						formData.width = (CSashForm.this.getClientArea()).width
 								- (CSashForm.this.sash.getBounds()).width - leftControl.getBorderWidth() * 2
-								- rightControl.getBorderWidth() * 2 - 20;
+								- rightControl.getBorderWidth() * 2 - DRAG_MINIMUM;
 					}
 					CSashForm.this.layout();
 				}

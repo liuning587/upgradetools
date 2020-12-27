@@ -4,14 +4,14 @@ import com.sanxing.upgrade.core.Event;
 import com.sanxing.upgrade.core.EventType;
 import com.sanxing.upgrade.core.Task;
 import com.sanxing.upgrade.protocol.Packet;
-import com.sanxing.upgrade.protocol.PacketParser;
+//import com.sanxing.upgrade.protocol.PacketParser;
 import com.sanxing.upgrade.protocol.dlt698.CheckFileRespPacket;
 import com.sanxing.upgrade.protocol.dlt698.ConfirmPacket;
 import com.sanxing.upgrade.protocol.dlt698.DLT698Packet;
 import com.sanxing.upgrade.protocol.dlt698.DLT698PacketParser;
 import com.sanxing.upgrade.protocol.dlt698.QueryVersionRespPacket;
 import com.sanxing.upgrade.protocol.dlt698.ResponseCode;
-import com.sanxing.upgrade.util.SysUtils;
+//import com.sanxing.upgrade.util.SysUtils;
 
 class DLT698UpgradeThread extends UpgradeThread {
 	private DLT698PacketParser parser = (DLT698PacketParser) UpgradeService.getInstance().getPacketParser();
@@ -300,7 +300,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 							doCheckUpgrade();
 
-							this.timer.reset(this.currentTask.getEvents(), 90000);
+							this.timer.reset(this.currentTask.getEvents(), 60000);
 
 							return;
 						}
@@ -455,7 +455,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 							this.lastSendRate = 0.0F;
 
 							this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED,
-									"终端已启动升级，开始发送升级文件(" + this.fileSendInfo.count() + "包)"));
+									"终端已启动升级，开始发送升级文件(" + this.fileSendInfo.count() + "包 " + this.file.getSplitLength() + "字节)"));
 
 							this.timer.clear();
 
