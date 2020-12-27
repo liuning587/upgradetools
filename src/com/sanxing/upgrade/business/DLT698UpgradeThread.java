@@ -58,7 +58,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 				this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "文件发送完毕，稍后将继续查询接收情况"));
 
-				this.timer.reset(this.currentTask.getEvents(), 10000);
+				this.timer.reset(this.currentTask.getEvents(), 1000);
 				this.fileCheckInfo.start();
 
 				this.service.taskChanged(this.currentTask);
@@ -90,7 +90,7 @@ class DLT698UpgradeThread extends UpgradeThread {
 
 				this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "文件补发完毕，稍后将继续查询接收情况"));
 
-				this.timer.reset(this.currentTask.getEvents(), 10000);
+				this.timer.reset(this.currentTask.getEvents(), 1000);
 
 				this.fileCheckInfo.start();
 
@@ -110,7 +110,8 @@ class DLT698UpgradeThread extends UpgradeThread {
 	private void doQueryVersion() {
 		this.currentTask.addEvent(Event.create(EventType.STATE_CHANGED, "查询终端当前软件版本"));
 
-		this.fepConnector.send((Packet) this.parser.packQueryVersionRequest(this.currentTask.getTerminalAddr(), this.msta));
+		this.fepConnector
+				.send((Packet) this.parser.packQueryVersionRequest(this.currentTask.getTerminalAddr(), this.msta));
 	}
 
 	private void doStartUpgrade() {
@@ -589,12 +590,14 @@ class DLT698UpgradeThread extends UpgradeThread {
 	// 创建数据传输报文
 	private DLT698Packet getUpgradeDataReqPacket(Task task, int index, boolean allowQuery) {
 		byte[] section = this.file.getSections()[index - 1];
-		return this.parser.packUpgradeDataRequest(this.currentTask.getTerminalAddr(), this.msta, index - 1, section, allowQuery);
+		return this.parser.packUpgradeDataRequest(this.currentTask.getTerminalAddr(), this.msta, index - 1, section,
+				allowQuery);
 	}
 
 	// 创建启动升级报文
 	private DLT698Packet getUpgradeReqPacket(Task task) {
-		//this.file.getType()
-		return this.parser.packStartUpgradeRequest(this.currentTask.getTerminalAddr(), this.msta, this.file.getSize(), this.file.getSplitLength(), 0);
+		// this.file.getType()
+		return this.parser.packStartUpgradeRequest(this.currentTask.getTerminalAddr(), this.msta, this.file.getSize(),
+				this.file.getSplitLength(), 0);
 	}
 }

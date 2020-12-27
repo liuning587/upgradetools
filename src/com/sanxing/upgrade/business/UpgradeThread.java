@@ -191,7 +191,7 @@ public abstract class UpgradeThread extends Thread {
 
 		this.fileSupplyInfo.clear();
 
-		this.currentTask.removeState(4096); //STATE_WAITING
+		this.currentTask.removeState(Task.STATE_WAITING); 
 
 		this.currentTask.addEvent(Event.createPending(EventType.START_TASK, "开始处理"));
 
